@@ -1,0 +1,6 @@
+["Passage","Group","Participant"]
+
+script = Node ("Root","1","null",[]) [
+	Node ("Passage","11","1",["klkl"])
+	Node ("Passage","12","1",["p1"])
+]
