@@ -64,15 +64,9 @@ genRoles participants pid n id = (printNode 3 "Role" id' pid role $ genParticipa
 	where
 		id' = pid ++ intToString (id)
 		i = mod (n-1) $ length participants
-		role
-			| id == 1 = "Teacher"
-			| otherwise = "Learner"
-		participants'
-			| id == 1 = [participants !! i]
-			| otherwise = participants
-		remaining
-			| id == 1 = removeItem participants i
-			| otherwise = []
+		(role, participants', remaining)
+			| id == 1 = ("Teacher", [participants !! i], removeItem participants i)
+			| otherwise = ("Learner", participants, [])
 
 
 
