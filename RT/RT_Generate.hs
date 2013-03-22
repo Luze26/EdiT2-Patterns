@@ -12,15 +12,23 @@ import Data.Char( intToDigit )
 -- @Information -> data
 -- @String -> the entire script
 generate :: Information -> String
-generate info = header ++ (genPassages info) ++ "]"
+generate info = header ++ (genIntro info) ++ (genPassages info) ++ "\t]\n]"
+
+
+
+-- genInfo, create the first activity
+-- @Inforamtion -> data
+-- @String -> subtrees under the root node
+genIntro :: Information -> String
+genIntro Information { participants = p, passages = _, nbParticipantsPerGroup = _, above = _, below = _ } = genParticipants p "1" 1  2 ++ "\t],\n\tNode (\"Activity\",\"11\",\"1\",[\"Learning\"]) [\n"
 
 
 
 -- genPassages, create groups, and generate subtrees for passages
 -- @Inforamtion -> data
--- @String -> subtrees under the root node
+-- @String -> subtrees under the second activity
 genPassages :: Information -> String
-genPassages Information { participants = p, passages = pa, nbParticipantsPerGroup = nbPPG } = genPassages' pa 1 $ createGroups p nbPPG
+genPassages Information { participants = p, passages = pa, nbParticipantsPerGroup = nbPPG, above = a, below = b } = genPassages' pa 1 $ createGroups p nbPPG a b
 
 
 
@@ -32,7 +40,7 @@ genPassages Information { participants = p, passages = pa, nbParticipantsPerGrou
 genPassages' :: [String] -> Int -> [[Participant]] -> String
 genPassages' [] _ _ = ""
 genPassages' _ _ [] = ""
-genPassages' (pa:passages) id groups = (printNode 1 "Passage" id' "1" pa $ genGroups groups id' id 1) ++ genPassages' passages (id+1) groups
+genPassages' (pa:passages) id groups = (printNode 2 "Passage" id' "1" pa (genGroups groups id' id 1) $ passages==[]) ++ genPassages' passages (id+1) groups
 	where
 		id' = '1':(intToString id)
 
@@ -46,7 +54,7 @@ genPassages' (pa:passages) id groups = (printNode 1 "Passage" id' "1" pa $ genGr
 -- @String -> subtrees for groups
 genGroups :: [[Participant]] -> String -> Int -> Int -> String
 genGroups [] _ _ _ = ""
-genGroups (g:groups) pid n id = (printNode 2 "Group" id' pid "" $ genRoles g id' n 1) ++ genGroups groups pid n (id+1)
+genGroups (g:groups) pid n id = (printNode 3 "Group" id' pid "" (genRoles g id' n 1) $ groups==[]) ++ genGroups groups pid n (id+1)
 	where
 		id' = pid ++ intToString (id)
 
@@ -60,7 +68,7 @@ genGroups (g:groups) pid n id = (printNode 2 "Group" id' pid "" $ genRoles g id'
 -- @String -> subtrees for roles
 genRoles :: [Participant] -> String -> Int -> Int -> String
 genRoles [] _ _ _ = ""
-genRoles participants pid n id = (printNode 3 "Role" id' pid role $ genParticipants participants' id' 1) ++ genRoles remaining pid n (id+1)
+genRoles participants pid n id = (printNode 4 "Role" id' pid role (genParticipants participants' id' 1 5) $ id>1) ++ genRoles remaining pid n (id+1)
 	where
 		id' = pid ++ intToString (id)
 		i = mod (n-1) $ length participants
@@ -74,20 +82,23 @@ genRoles participants pid n id = (printNode 3 "Role" id' pid role $ genParticipa
 -- @[Participant] -> participants
 -- @String -> parent id
 -- @Int -> the id of the node in its subtree
--- @String -> subtrees for roles
-genParticipants :: [Participant] -> String -> Int -> String
-genParticipants [] _ _ = ""
-genParticipants (p:participants) pid id = (printNode 4 "Participant" (pid ++ intToString id) pid p "") ++ genParticipants participants pid (id+1)
+-- @Int -> number of tabs
+-- @String -> subtrees for participants
+genParticipants :: [Participant] -> String -> Int -> Int -> String
+genParticipants [] _ _ _ = ""
+genParticipants (p:participants) pid id tabs = (printNode tabs "Participant" (pid ++ intToString id) pid p "" $ participants==[]) ++ genParticipants participants pid (id+1) tabs
 
 
 
 -- createGroups, split participants into groups
 -- @[Participant] -> participants
 -- @Int -> number of participants per group
+-- @Int -> above
+-- @Int -> below
 -- @[[Participant]] -> groups
-createGroups :: [Participant] -> Int -> [[Participant]]
-createGroups [] _ = []
-createGroups participants nbPPG = first : (createGroups rest nbPPG)
+createGroups :: [Participant] -> Int -> Int -> Int -> [[Participant]]
+createGroups [] _ _ _ = []
+createGroups participants nbPPG a b = first : (createGroups rest nbPPG a b)
 	where
 		(first, rest) = splitAt nbPPG participants
 
@@ -98,7 +109,7 @@ createGroups participants nbPPG = first : (createGroups rest nbPPG)
 -- header, the header
 -- @String -> the header, with the root node
 header :: String
-header = "[\"Passage\",\"Group\",\"Role\",\"Participant\"]\n\nscript = Node (\"Root\",\"1\",\"null\",[]) [\n"
+header = "[\"Activity\",\"Passage\",\"Group\",\"Role\",\"Participant\"]\n\nscript = Node (\"Root\",\"1\",\"null\",[]) [\n\tNode (\"Activity\",\"11\",\"1\",[\"Introduction\"]) [\n"
 
 
 
@@ -109,13 +120,17 @@ header = "[\"Passage\",\"Group\",\"Role\",\"Participant\"]\n\nscript = Node (\"R
 -- @String -> parent's id
 -- @String -> content
 -- @String -> subtrees
+-- @Bool -> if there is a node following
 -- @String -> the node
-printNode :: Int -> String -> String -> String -> String -> String -> String
-printNode nbTabs column id pid content subtrees = tabs ++ "Node (\"" ++ column ++ "\",\"" ++ id ++ "\",\"" ++ pid ++ "\",[" ++ content' ++ "]) [" ++ subtrees' ++ "],\n"
+printNode :: Int -> String -> String -> String -> String -> String -> Bool -> String
+printNode nbTabs column id pid content subtrees remain = tabs ++ "Node (\"" ++ column ++ "\",\"" ++ id ++ "\",\"" ++ pid ++ "\",[" ++ content' ++ "]) [" ++ subtrees' ++ "]" ++ end
 	where
 		tabs = tab nbTabs
 		content' = if (length content == 0) then "" else '\"':content ++ "\""
 		subtrees' = if (length subtrees == 0) then "" else '\n':subtrees ++ tabs
+		end
+			| remain == True = "\n"
+			| otherwise = ",\n" 
 
 
 -- tab, concat tabulations

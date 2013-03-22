@@ -12,7 +12,9 @@ type Passage = String
 data Information = Information {
 				participants :: [Participant],
 				passages :: [String],
-				nbParticipantsPerGroup :: Int
+				nbParticipantsPerGroup :: Int,
+				above :: Int,
+				below :: Int
 			}  deriving (Show, Read)
 
 readInfo :: String -> Information
