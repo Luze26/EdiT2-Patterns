@@ -1,6 +1,90 @@
-["Passage","Group","Participant"]
+["Activity","Passage","Group","Role","Participant"]
 
 script = Node ("Root","1","null",[]) [
-	Node ("Passage","11","1",["klkl"])
-	Node ("Passage","12","1",["p1"])
+	Node ("Activity","11","1",["Introduction"]) [
+		Node ("Participant","11","1",["Pierre"]) [],
+		Node ("Participant","12","1",["Marc"]) [],
+		Node ("Participant","13","1",["Lucie"]) [],
+		Node ("Participant","14","1",["Lea"]) [],
+		Node ("Participant","15","1",["Jean"]) [],
+		Node ("Participant","16","1",["Soph"]) [],
+		Node ("Participant","17","1",["Alice"]) []
+	],
+	Node ("Activity","11","1",["Learning"]) [
+		Node ("Passage","11","1",["klkl"]) [
+			Node ("Group","111","11",[]) [
+				Node ("Role","1111","111",["Teacher"]) [
+					Node ("Participant","11111","1111",["Pierre"]) []
+				],
+				Node ("Role","1112","111",["Learner"]) [
+					Node ("Participant","11121","1112",["Marc"]) [],
+					Node ("Participant","11122","1112",["Lucie"]) []
+				]
+			],
+			Node ("Group","112","11",[]) [
+				Node ("Role","1121","112",["Teacher"]) [
+					Node ("Participant","11211","1121",["Lea"]) []
+				],
+				Node ("Role","1122","112",["Learner"]) [
+					Node ("Participant","11221","1122",["Jean"]) [],
+					Node ("Participant","11222","1122",["Soph"]) []
+				]
+			],
+			Node ("Group","113","11",[]) [
+				Node ("Role","1131","113",["Teacher"]) [
+					Node ("Participant","11311","1131",["Alice"]) []
+				],
+			]
+		],
+		Node ("Passage","12","1",["p1"]) [
+			Node ("Group","121","12",[]) [
+				Node ("Role","1211","121",["Teacher"]) [
+					Node ("Participant","12111","1211",["Marc"]) []
+				],
+				Node ("Role","1212","121",["Learner"]) [
+					Node ("Participant","12121","1212",["Pierre"]) [],
+					Node ("Participant","12122","1212",["Lucie"]) []
+				]
+			],
+			Node ("Group","122","12",[]) [
+				Node ("Role","1221","122",["Teacher"]) [
+					Node ("Participant","12211","1221",["Jean"]) []
+				],
+				Node ("Role","1222","122",["Learner"]) [
+					Node ("Participant","12221","1222",["Lea"]) [],
+					Node ("Participant","12222","1222",["Soph"]) []
+				]
+			],
+			Node ("Group","123","12",[]) [
+				Node ("Role","1231","123",["Teacher"]) [
+					Node ("Participant","12311","1231",["Alice"]) []
+				],
+			]
+		],
+		Node ("Passage","13","1",["3333"]) [
+			Node ("Group","131","13",[]) [
+				Node ("Role","1311","131",["Teacher"]) [
+					Node ("Participant","13111","1311",["Lucie"]) []
+				],
+				Node ("Role","1312","131",["Learner"]) [
+					Node ("Participant","13121","1312",["Pierre"]) [],
+					Node ("Participant","13122","1312",["Marc"]) []
+				]
+			],
+			Node ("Group","132","13",[]) [
+				Node ("Role","1321","132",["Teacher"]) [
+					Node ("Participant","13211","1321",["Soph"]) []
+				],
+				Node ("Role","1322","132",["Learner"]) [
+					Node ("Participant","13221","1322",["Lea"]) [],
+					Node ("Participant","13222","1322",["Jean"]) []
+				]
+			],
+			Node ("Group","133","13",[]) [
+				Node ("Role","1331","133",["Teacher"]) [
+					Node ("Participant","13311","1331",["Alice"]) []
+				],
+			]
+		]
+	]
 ]

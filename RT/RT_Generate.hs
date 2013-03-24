@@ -98,10 +98,31 @@ genParticipants (p:participants) pid id tabs = (printNode tabs "Participant" (pi
 -- @[[Participant]] -> groups
 createGroups :: [Participant] -> Int -> Int -> Int -> [[Participant]]
 createGroups [] _ _ _ = []
-createGroups participants nbPPG a b = first : (createGroups rest nbPPG a b)
-	where
-		(first, rest) = splitAt nbPPG participants
+createGroups participants nbPPG a b = splitPaticipants participants $ repartition (length participants) nbPPG a b 0
+	where (ok, list) = repartition (length participants) nbPPG a b 0
+		| ok = splitParticipants participants list
+		| otherwise = []
 
+splitParticipants :: [Participant] -> [Int] -> [[Participant]]
+splitParticipants [] _ = []
+splitParticipants participants n:numbers = first : (splitParticipants rest numbers)
+	where
+		(first, rest) = splitAt n participants
+
+-- repartition, list of number of participants per group
+-- @Int -> number of participants per group
+-- @Int -> above
+-- @Int -> below
+-- @(Bool, [Int]) -> tuple, True if it's possible, [Int] the list
+repartition :: Int -> Int -> Int -> Int -> Int -> (Bool, [Int])
+repartition nbP n a b m
+	| sub > 0 = let (ok, list) = repartition sub n a b m in if ok then (ok, nb:list) else decrease
+	| sub == 0 = (True, [nb])
+	| otherwise = decrease
+	where
+		nb = n-m
+		sub = nbP-nb
+		decrease = if m<b && nb>2 then (repartition nbP n a b (m+1)) else (False, [])
 
 {-===========================================================================-}	
 {-============================ UTILITY FUNCTIONS ============================-}	
