@@ -98,10 +98,7 @@ genParticipants (p:participants) pid id tabs = (printNode tabs "Participant" (pi
 -- @[[Participant]] -> groups
 createGroups :: [Participant] -> Int -> Int -> Int -> [[Participant]]
 createGroups [] _ _ _ = []
-createGroups participants nbPPG a b
-	| ok = splitParticipants participants list
-	| otherwise = []
-	where (ok, list) = repartition (length participants) nbPPG a b 0	
+createGroups participants nbPPG a b = splitParticipants participants $ repartition (length participants) nbPPG a b
 
 
 
@@ -117,20 +114,42 @@ splitParticipants participants (n:numbers) = first : (splitParticipants rest num
 
 
 
+repartition :: Int -> Int -> Int -> Int -> [Int]
+repartition nbP n a b
+	| ok = list1
+	| otherwise = list2
+	where
+		(ok, list1) = repartitionUniform nbP n a b 0
+		(_, list2) = repartition' nbP n a b 0
+
+
+
 -- repartition, list of number of participants per group
 -- @Int -> number of participants per group
 -- @Int -> above
 -- @Int -> below
 -- @(Bool, [Int]) -> tuple, True if it's possible, [Int] the list
-repartition :: Int -> Int -> Int -> Int -> Int -> (Bool, [Int])
-repartition nbP n a b m
-	| sub > 0 = let (ok, list) = repartition sub n a b m in if ok then (ok, nb:list) else decrease
+repartition' :: Int -> Int -> Int -> Int -> Int -> (Bool, [Int])
+repartition' nbP n a b m
+	| sub > 0 = let (ok, list) = repartition' sub n a b m in if ok then (ok, nb:list) else decrease
 	| sub == 0 = (True, [nb])
 	| otherwise = decrease
 	where
 		nb = n-m
 		sub = nbP-nb
-		decrease = if m<b && nb>2 then (repartition nbP n a b (m+1)) else (False, [])
+		decrease = if m<b && nb>2 then (repartition' nbP n a b (m+1)) else (False, [])
+
+
+
+repartitionUniform :: Int -> Int -> Int -> Int -> Int -> (Bool, [Int])
+repartitionUniform nbP n a b m
+	| m<=a && mod nbP nb == 0 = (True, replicate (div nbP nb) nb)
+	| m<=b && nb>1 && mod nbP nb1 == 0 = (True, replicate (div nbP nb1) nb1)
+	| m<a || m<b = repartitionUniform nbP n a b (m+1)
+	| otherwise = (False, [])
+	where
+		nb = n+m
+		nb1 = n-m 
 
 
 
