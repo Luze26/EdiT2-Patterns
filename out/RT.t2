@@ -26,14 +26,16 @@ script = Node ("Root","1","null",[]) [
 					Node ("Participant","11211","1121",["Lea"]) []
 				],
 				Node ("Role","1122","112",["Learner"]) [
-					Node ("Participant","11221","1122",["Jean"]) [],
-					Node ("Participant","11222","1122",["Soph"]) []
+					Node ("Participant","11221","1122",["Jean"]) []
 				]
 			],
 			Node ("Group","113","11",[]) [
 				Node ("Role","1131","113",["Teacher"]) [
-					Node ("Participant","11311","1131",["Alice"]) []
+					Node ("Participant","11311","1131",["Soph"]) []
 				],
+				Node ("Role","1132","113",["Learner"]) [
+					Node ("Participant","11321","1132",["Alice"]) []
+				]
 			]
 		],
 		Node ("Passage","12","1",["p1"]) [
@@ -51,14 +53,16 @@ script = Node ("Root","1","null",[]) [
 					Node ("Participant","12211","1221",["Jean"]) []
 				],
 				Node ("Role","1222","122",["Learner"]) [
-					Node ("Participant","12221","1222",["Lea"]) [],
-					Node ("Participant","12222","1222",["Soph"]) []
+					Node ("Participant","12221","1222",["Lea"]) []
 				]
 			],
 			Node ("Group","123","12",[]) [
 				Node ("Role","1231","123",["Teacher"]) [
 					Node ("Participant","12311","1231",["Alice"]) []
 				],
+				Node ("Role","1232","123",["Learner"]) [
+					Node ("Participant","12321","1232",["Soph"]) []
+				]
 			]
 		],
 		Node ("Passage","13","1",["3333"]) [
@@ -73,17 +77,19 @@ script = Node ("Root","1","null",[]) [
 			],
 			Node ("Group","132","13",[]) [
 				Node ("Role","1321","132",["Teacher"]) [
-					Node ("Participant","13211","1321",["Soph"]) []
+					Node ("Participant","13211","1321",["Lea"]) []
 				],
 				Node ("Role","1322","132",["Learner"]) [
-					Node ("Participant","13221","1322",["Lea"]) [],
-					Node ("Participant","13222","1322",["Jean"]) []
+					Node ("Participant","13221","1322",["Jean"]) []
 				]
 			],
 			Node ("Group","133","13",[]) [
 				Node ("Role","1331","133",["Teacher"]) [
-					Node ("Participant","13311","1331",["Alice"]) []
+					Node ("Participant","13311","1331",["Soph"]) []
 				],
+				Node ("Role","1332","133",["Learner"]) [
+					Node ("Participant","13321","1332",["Alice"]) []
+				]
 			]
 		]
 	]

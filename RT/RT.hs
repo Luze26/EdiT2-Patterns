@@ -1,5 +1,4 @@
 import RT_Generate( generate )
-import Util
 import RT_Info( readInfo )
 import System.Environment( getArgs )
 
