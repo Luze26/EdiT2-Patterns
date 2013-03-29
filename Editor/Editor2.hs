@@ -8,10 +8,17 @@ main = do
 	start (args ++ (createList 700))
 
 start :: [String] -> IO()
+<<<<<<< HEAD
 start (file:m:args) = writeFile file ("[\"Topic\",\"Editor\",\"Section\",\"Editor\"]\n\nscript=" ++ (printTree True "" $ generate args $ readInt m))
 
 generate :: [String] -> Int -> NTree Cell
 generate n m = Node ("Root","1","null",[]) $ editorLevel (length n) n n m 0
+=======
+start (file:m:args) = writeFile file $ generate args $ readInt m
+
+generate :: [String] -> Int -> String
+generate n m = show (Node ("Root","1","null",[]) $ editorLevel (length n) n n m 0 :: NTree Cell)
+>>>>>>> fb1218c115200f7a2d9bf32d10722482d001dc86
 
 editorLevel :: Int -> [String] -> [String] -> Int -> Int -> [NTree Cell]
 editorLevel _ _ [] _ _ = []
@@ -38,6 +45,7 @@ sectionLevel eId tId nb n m i = Node ("Section", secId, eId, [ "Section" ++ tId 
 readInt :: String -> Int
 readInt = read
 
+<<<<<<< HEAD
 printTree :: Bool -> String -> NTree Cell -> String
 printTree noComma tabs (Node cell subtrees) = tabs ++ "Node " ++ (show cell) ++ starting ++ (printSubTrees ('\t':tabs) subtrees) ++ ending
 																						where
@@ -55,6 +63,8 @@ printSubTrees tabs (s:subtrees) = printTree noComma tabs s ++ (printSubTrees tab
 																						noComma = subtrees == []
 
 
+=======
+>>>>>>> fb1218c115200f7a2d9bf32d10722482d001dc86
 createList :: Int -> [String]
 createList 1 = ["e1"]
 createList n = ('e' : (show n)) : createList (n-1)
