@@ -1,3 +1,0 @@
-# DO NOT DELETE: Beginning of Haskell dependencies
-test.o : test.hs
-# DO NOT DELETE: End of Haskell dependencies

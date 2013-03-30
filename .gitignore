@@ -1,5 +1,11 @@
+*.o
+*.hi
+*~
+.depend*
+*.sh
+*/RT
+*/Editor2
+*/Editor
 Jigsaw/
 out/
 tests/
-*
-!*.hs
