@@ -1,4 +1,4 @@
 Jigsaw/
 out/
 tests/
-
+!*.hs
