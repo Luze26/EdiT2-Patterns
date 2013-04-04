@@ -25,6 +25,12 @@ parse :: String -> NTree Cell
 parse tree = read tree::NTree Cell
 
 
+
+-- printTree, convert a tree in string with correct indents
+-- @Bool -> if there is another Ntree after him on the same level
+-- @String -> tabulations
+-- @NTree Cell -> the tree to convert
+-- @String -> the tree in .t2 format
 printTree :: Bool -> String -> NTree Cell -> String
 printTree noComma tabs (Node cell subtrees) = tabs ++ "Node " ++ (show cell) ++ starting ++ (printSubTrees ('\t':tabs) subtrees) ++ ending
 	where
@@ -35,6 +41,12 @@ printTree noComma tabs (Node cell subtrees) = tabs ++ "Node " ++ (show cell) ++ 
 			| noComma = "]"
 			| otherwise = "],\n"
 
+
+
+-- printSubTrees, call printTree for each subtrees
+-- @String -> tabulations
+-- @[NTree Cell] -> list of subtrees
+-- @String -> subtrees in format .t2
 printSubTrees :: String -> [NTree Cell] -> String
 printSubTrees _ [] = ""
 printSubTrees tabs (s:subtrees) = printTree noComma tabs s ++ (printSubTrees tabs subtrees)

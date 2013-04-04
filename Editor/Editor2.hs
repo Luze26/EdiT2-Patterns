@@ -47,6 +47,7 @@ editorLevel participants (p:ps) nbSec nbSecEditor i = Node ("Topic", tId, "1", [
 		subeditor = participants ++ ps
 
 
+
 -- sectionLevel, generate the section and section editor level
 -- @[String] -> participants
 -- @[String] -> participants remaining to be sub-editor
@@ -65,11 +66,19 @@ sectionLevel participants ps eId tId nbSec nbSecEditor i= (Node ("Section", secI
 		(editors, ps2) = takeParticipants participants ps nbSecEditor
 
 
+
+-- subEditorLevel, generate the sub editor level
+-- @[String] -> participants
+-- @[String] -> participants remaining to be sub-editor
+-- @String -> section id
+-- @String sub editor id
 subEditorLevel :: [String] -> String -> Int -> [NTree Cell]
 subEditorLevel [] _ _ = []
 subEditorLevel (e:editors) secId i = Node ("Editor", e2Id, secId, [e]) [] : subEditorLevel editors  secId (i+1)
 	where
 		e2Id = secId ++ show (i+1)
+
+
 
 -- takeParticipants, take the number of participants at the beginning of the list and return to the real start if it's the end
 -- @[String] -> participants
