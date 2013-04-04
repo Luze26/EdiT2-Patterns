@@ -23,3 +23,20 @@ data NTree a = Node a [NTree a] deriving (Eq,Ord,Show,Read)
 -- @NTree Cell -> the tree
 parse :: String -> NTree Cell
 parse tree = read tree::NTree Cell
+
+
+printTree :: Bool -> String -> NTree Cell -> String
+printTree noComma tabs (Node cell subtrees) = tabs ++ "Node " ++ (show cell) ++ starting ++ (printSubTrees ('\t':tabs) subtrees) ++ ending
+	where
+		starting
+			| subtrees == [] = " ["
+			| otherwise = " [\n"
+		ending
+			| noComma = "]"
+			| otherwise = "],\n"
+
+printSubTrees :: String -> [NTree Cell] -> String
+printSubTrees _ [] = ""
+printSubTrees tabs (s:subtrees) = printTree noComma tabs s ++ (printSubTrees tabs subtrees)
+	where
+		noComma = subtrees == []
