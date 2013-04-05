@@ -1,4 +1,9 @@
-module TreeGenerator where
+module TreeGenerator
+(
+	Name,
+	Level,
+	generate
+) where
 
 import Tree
 
