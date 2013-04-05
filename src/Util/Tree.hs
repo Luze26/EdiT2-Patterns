@@ -18,11 +18,11 @@ data NTree a = Node a [NTree a] deriving (Eq,Ord,Show,Read)
 
 
 
--- parse, parse a String into a NTree
+-- readTree, parse a String into a NTree Cell
 -- @String -> the string describing a tree
 -- @NTree Cell -> the tree
-parse :: String -> NTree Cell
-parse tree = read tree::NTree Cell
+readTree :: String -> NTree Cell
+readTree tree = read tree
 
 
 
