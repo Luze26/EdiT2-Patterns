@@ -4,8 +4,7 @@
 .depend*
 *.sh
 */RT
-*/Editor2
-*/Editor
+src/Editor/Editor2
 Jigsaw/
 out/
 tests/
