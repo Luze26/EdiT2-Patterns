@@ -32,7 +32,15 @@ data NTree a = Node a [NTree a] deriving (Eq,Ord,Show,Read)
 -- @String -> the string describing a tree
 -- @NTree Cell -> the tree
 readTree :: String -> NTree Cell
-readTree tree = read tree
+readTree tree = read $ stripHeader tree
+
+
+
+-- stripHeader, return only the tree
+-- @String -> the file content
+-- @String -> the tree
+stripHeader :: String -> String
+stripHeader text = drop 7 $ concat $ drop 2 $ lines text
 
 
 

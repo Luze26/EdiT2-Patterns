@@ -5,6 +5,7 @@
 *.sh
 */RT
 src/Editor/Editor2
+src/Util/Checker
 Jigsaw/
 out/
 tests/
