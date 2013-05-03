@@ -13,7 +13,8 @@ main = do
 start :: [String] -> IO()
 start (output:input:cstrs) = do
 		tree <- readFile input
-		writeFile output $ show $ checkConstraint (readTree tree) ((read (concat cstrs))::Cstr)
+		print $ show $ checkConstraint (readTree tree) ((read (concat cstrs))::Cstr)
+		-- writeFile output $ show $ checkConstraint (readTree tree) ((read (concat cstrs))::Cstr)
 
 
 
@@ -23,43 +24,82 @@ start (output:input:cstrs) = do
 -- @Bool -> True if the tree respects the constraint, False otherwise
 checkConstraint :: NTree Cell -> Cstr -> Bool
 checkConstraint tree cstr
-	| command cstr == "under" = -- checkUnder tree (wher cstr) (who cstr) 
+	| command cstr == "under" = checkUnder (who cstr) $ lookFor tree $ match (wher cstr)
+	| command cstr == "under?" = checkUnder' (who cstr) $ lookFor tree $ match (wher cstr)
 	| otherwise = False
 
 
 
--- lookFor
-lookFor :: NTree Cell -> Identificator -> [NTree Cell]
-lookFor (node@(Node (label,_,_,_) subtrees)) id@(Label l)
-	| label == l = node : foldl (\acc x -> acc ++ (lookFor x id)) [] subtrees
-	| otherwise = foldl (\acc x -> acc ++ (lookFor x id)) [] subtrees
+-- match
+match :: Identificator -> Cell -> Bool
+match (Label l) (label,_,_,_) = l == label
 
--- checkUnder
--- @String -> parent node
--- @[String] -> node contents which must all be under the same node
-checkUnder :: NTree Cell -> String -> [String] -> Bool
-checkUnder (Node (_,_,_,comp) subtree) root nodes
-	| root == comps && subtree == [] = False
-	| root == comps = contains nodes $ checkUnder'' subtree nodes
-	| otherwise = checkUnder' subtree root nodes
-	where comps = concat comp
 
-checkUnder' :: [NTree Cell] -> String -> [String] -> Bool
-checkUnder' [] _ _ = True
-checkUnder' (t:trees) root nodes
-	| checkUnder t root nodes = checkUnder' trees root nodes
-	| otherwise = False
 
-checkUnder'' :: [NTree Cell] -> [String] -> [String]
-checkUnder'' [] _ = []
-checkUnder'' ((Node (_,_,_,comp) subtrees):trees) nodes
-	| elem comps nodes = comps : next
-	| otherwise = next
+-- lookFor, return trees with a root node included in the identificator
+-- @NTree Cell -> the tree
+-- @Identificator -> identificator used to know where we must look
+-- @[NTree Cell] -> subtrees involved
+lookFor :: NTree Cell -> (Cell -> Bool) -> [NTree Cell]
+lookFor node@(Node cell subtrees) match'
+	| match' cell  = node : foldl (\acc x -> acc ++ (lookFor x match')) [] subtrees
+	| otherwise = foldl (\acc x -> acc ++ (lookFor x match')) [] subtrees
+
+
+
+-- nodes, return a list of nodes content under the given trees
+-- @[NTree Cell] -> trees
+-- @[String] -> contents of the nodes
+nodes :: [NTree Cell] -> [String]
+nodes [] = []
+nodes ((Node (_,_,_,contents) subtrees):trees)  = (contents' : nodes subtrees) ++ nodes trees
 	where
-		comps = concat comp
-		next = checkUnder'' subtrees nodes ++ (checkUnder'' trees nodes)
+		contents' = concat contents
 
+
+
+-- contains, return True if all the elems of the first list are in the second list
+-- @[String] -> elems which must be found in the second list
+-- @[String] -> list where we look
+-- @Bool -> if elems of the first list appeared in the second list
+contains :: [String] -> [String] -> Bool
 contains [] _ = True
 contains (x:xs) ys
 	| elem x ys = contains xs ys
 	| otherwise = False
+
+
+
+-- containsNot, return True if no one of the elems of the first list are in the second list
+-- @[String] -> elems which shouldn't be found in the second list
+-- @[String] -> list where we look
+-- @Bool -> if elems of the first list don't appeared in the second list
+containsNot :: [String] -> [String] -> Bool
+containsNot [] _ = False
+containsNot (x:xs) ys
+	| elem x ys = True
+	| otherwise = containsNot xs ys
+
+
+
+-- checkUnder, return True if all the items in the first list are in all subtrees selected
+-- @[String] -> what to look for
+-- @[NTree Cell] -> trees
+checkUnder :: [String] -> [NTree Cell] -> Bool
+checkUnder _ [] = True
+checkUnder items (t:trees)
+	| contains items (nodes [t]) == False = False
+	| otherwise = checkUnder items trees
+
+
+
+-- checkUnder', return True if all the items in the first list are in a subtree selected, or none of the item are in
+-- @[String] -> what to look for
+-- @[NTree Cell] -> trees
+checkUnder' :: [String] -> [NTree Cell] -> Bool
+checkUnder' _ [] = True
+checkUnder' items (t:trees)
+	| contains items nodes' || containsNot items nodes' == False = False
+	| otherwise = checkUnder' items trees
+	where
+		nodes' = nodes [t]
