@@ -75,9 +75,9 @@ contains (x:xs) ys
 -- @[String] -> list where we look
 -- @Bool -> if elems of the first list don't appeared in the second list
 containsNot :: [String] -> [String] -> Bool
-containsNot [] _ = False
+containsNot [] _ = True
 containsNot (x:xs) ys
-	| elem x ys = True
+	| elem x ys = False
 	| otherwise = containsNot xs ys
 
 
@@ -99,7 +99,7 @@ checkUnder items (t:trees)
 checkUnder' :: [String] -> [NTree Cell] -> Bool
 checkUnder' _ [] = True
 checkUnder' items (t:trees)
-	| contains items nodes' || containsNot items nodes' == False = False
-	| otherwise = checkUnder' items trees
+	| contains items nodes' || containsNot items nodes' = checkUnder' items trees
+	| otherwise = False
 	where
 		nodes' = nodes [t]
