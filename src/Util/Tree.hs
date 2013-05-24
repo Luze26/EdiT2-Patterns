@@ -8,7 +8,8 @@ module Tree
 	NTree (..),
 	showTree,
 	readTree,
-	node
+	node,
+	cellComponents
 ) where
 
 -- name of the column, in which the cell is
@@ -34,6 +35,14 @@ data NTree a = Node a [NTree a] deriving (Eq,Ord,Show,Read)
 -- @Cell -> the root's cell
 node :: NTree Cell -> Cell
 node (Node cell _) = cell
+
+
+
+-- cellComponents, return the components
+-- @Cell -> the cell
+-- @CellComponents -> components
+cellComponents :: Cell -> CellComponents
+cellComponents (_,_,_,components) = components
 
 
 

@@ -14,7 +14,7 @@ type Cmd = String
 -- used, to know where we must look
 data Identificator = Label String | Content String deriving (Show, Read)
 
-data Item = Item String | PropContent deriving (Show, Read)
+data Item = Item String | PropContent deriving (Show, Read, Eq)
 type Items = [Item]
  
 -- Cstr, type to represent a constraint

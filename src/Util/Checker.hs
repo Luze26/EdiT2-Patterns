@@ -29,6 +29,7 @@ checkConstraint tree cstr
 	| command cstr == "!under" = not $ checkUnder (items cstr) $ lookFor tree $ match (wher cstr)
 	| command cstr == "under?" = checkUnder' (items cstr) $ lookFor tree $ match (wher cstr)
 	| command cstr == "!under?" = not $ checkUnder' (items cstr) $ lookFor tree $ match (wher cstr)
+	| command cstr == "before" = checkBefore (items cstr) $ lookFor tree $ match (wher cstr)
 	| otherwise = False
 
 
@@ -123,3 +124,18 @@ checkUnder' itemss (t:trees)
 	| otherwise = False
 	where
 		nodes' = nodes [t]
+
+
+
+-- checkBefore, check if the first item is before the second item (with left right traversal on root nodes of trees)
+-- @Items -> what to look for
+-- @[NTree Cell] -> trees
+checkBefore :: Items -> [NTree Cell] -> Bool
+checkBefore _ [] = False
+checkBefore (_:[]) _ = False
+checkBefore items@(a:b:_) (tree:trees)
+	| b == comp = False
+	| a == comp = True
+	| otherwise = checkBefore items trees
+	where
+		comp = Item $ head $ cellComponents $ node tree
