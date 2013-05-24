@@ -19,6 +19,7 @@ generate  :: [Level] -> NTree Cell
 generate (l:lvls) = Node ("Root","1","null",[]) $ generate' l lvls "1" 1
 
 
+
 generate' :: Level -> [Level] -> String -> Int -> [NTree Cell]
 generate' (_, []) _ _ _ = []
 generate' (name, [r]:rows) lvls pid i = (Node (name, id, pid, r) subtree) : generate' (name, rows) ls pid (i+1)

@@ -7,7 +7,8 @@ module Tree
 	Cell,
 	NTree (..),
 	showTree,
-	readTree
+	readTree,
+	node
 ) where
 
 -- name of the column, in which the cell is
@@ -25,6 +26,14 @@ type CellComponents = [String]
 type Cell = (CellLabel,CellNumbering,CellFatherNumbering,CellComponents)
 
 data NTree a = Node a [NTree a] deriving (Eq,Ord,Show,Read)
+
+
+
+-- node, return the cell
+-- @NTree Cell -> the tree
+-- @Cell -> the root's cell
+node :: NTree Cell -> Cell
+node (Node cell _) = cell
 
 
 

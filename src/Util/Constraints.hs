@@ -2,19 +2,25 @@ module Constraints
 (
 	Cmd,
 	Cstr(..),
-	Identificator(..)
+	Identificator(..),
+	Item(..),
+	Items
 ) where
 
 
 -- Cmd, used to represent a constraint command
 type Cmd = String
 
-data Identificator = Id Int | Label String | Content String deriving (Show, Read)
+-- used, to know where we must look
+data Identificator = Label String | Content String deriving (Show, Read)
 
+data Item = Item String | PropContent deriving (Show, Read)
+type Items = [Item]
+ 
 -- Cstr, type to represent a constraint
 data Cstr = 
 	Cstr {
-		who :: [String], --List of items
+		items :: Items, --List of items
 		command :: Cmd, --what to check
 		wher ::  Identificator --Under what
 	} deriving (Show, Read)

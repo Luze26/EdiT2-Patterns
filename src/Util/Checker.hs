@@ -10,6 +10,7 @@ main = do
 	start args
 
 
+
 start :: [String] -> IO()
 start (output:input:cstrs) = do
 		tree <- readFile input
@@ -24,15 +25,21 @@ start (output:input:cstrs) = do
 -- @Bool -> True if the tree respects the constraint, False otherwise
 checkConstraint :: NTree Cell -> Cstr -> Bool
 checkConstraint tree cstr
-	| command cstr == "under" = checkUnder (who cstr) $ lookFor tree $ match (wher cstr)
-	| command cstr == "under?" = checkUnder' (who cstr) $ lookFor tree $ match (wher cstr)
+	| command cstr == "under" = checkUnder (items cstr) $ lookFor tree $ match (wher cstr)
+	| command cstr == "!under" = not $ checkUnder (items cstr) $ lookFor tree $ match (wher cstr)
+	| command cstr == "under?" = checkUnder' (items cstr) $ lookFor tree $ match (wher cstr)
+	| command cstr == "!under?" = not $ checkUnder' (items cstr) $ lookFor tree $ match (wher cstr)
 	| otherwise = False
 
 
 
--- match
+-- match, return True if a cell match the identificator
+-- @Identificator -> identificator
+-- @Cell -> the cell
+-- @Bool -> True if the cell match the identificator
 match :: Identificator -> Cell -> Bool
 match (Label l) (label,_,_,_) = l == label
+match (Content c) (_,_,_,content) = c == (concat content)
 
 
 
@@ -59,47 +66,60 @@ nodes ((Node (_,_,_,contents) subtrees):trees)  = (contents' : nodes subtrees) +
 
 
 -- contains, return True if all the elems of the first list are in the second list
--- @[String] -> elems which must be found in the second list
+-- @Items -> elems which must be found in the second list
 -- @[String] -> list where we look
 -- @Bool -> if elems of the first list appeared in the second list
-contains :: [String] -> [String] -> Bool
+contains :: Items -> [String] -> Bool
 contains [] _ = True
-contains (x:xs) ys
+contains ((Item x):xs) ys
 	| elem x ys = contains xs ys
 	| otherwise = False
 
 
 
 -- containsNot, return True if no one of the elems of the first list are in the second list
--- @[String] -> elems which shouldn't be found in the second list
+-- @Items -> elems which shouldn't be found in the second list
 -- @[String] -> list where we look
 -- @Bool -> if elems of the first list don't appeared in the second list
-containsNot :: [String] -> [String] -> Bool
+containsNot :: Items -> [String] -> Bool
 containsNot [] _ = True
-containsNot (x:xs) ys
+containsNot ((Item x):xs) ys
 	| elem x ys = False
 	| otherwise = containsNot xs ys
 
 
 
+-- replaceItemsValues, replace PropContent items by their value for the root node
+-- @Cell -> the root node
+-- @Items -> items
+-- @Items -> items of the form Items String
+replaceItemsValues :: Cell -> Items -> Items
+replaceItemsValues _ [] = []
+replaceItemsValues cell@(_, _, _, content) (PropContent:itemss) = Item (concat content) : replaceItemsValues cell itemss
+replaceItemsValues cell (i:itemss) = i : replaceItemsValues cell itemss
+
+
+
 -- checkUnder, return True if all the items in the first list are in all subtrees selected
--- @[String] -> what to look for
+-- @Items -> what to look for
 -- @[NTree Cell] -> trees
-checkUnder :: [String] -> [NTree Cell] -> Bool
+checkUnder :: Items -> [NTree Cell] -> Bool
 checkUnder _ [] = True
-checkUnder items (t:trees)
-	| contains items (nodes [t]) == False = False
-	| otherwise = checkUnder items trees
+checkUnder itemss (t:trees)
+	| contains items' (nodes [t]) == False = False
+	| otherwise = checkUnder items' trees
+	where
+		items' = replaceItemsValues (node t) itemss
 
 
 
 -- checkUnder', return True if all the items in the first list are in a subtree selected, or none of the item are in
--- @[String] -> what to look for
+-- @Items -> what to look for
 -- @[NTree Cell] -> trees
-checkUnder' :: [String] -> [NTree Cell] -> Bool
+checkUnder' :: Items -> [NTree Cell] -> Bool
 checkUnder' _ [] = True
-checkUnder' items (t:trees)
-	| contains items nodes' || containsNot items nodes' = checkUnder' items trees
+checkUnder' itemss (t:trees)
+	| contains itemss nodes' || containsNot itemss nodes' = checkUnder' itemss trees
 	| otherwise = False
 	where
 		nodes' = nodes [t]
