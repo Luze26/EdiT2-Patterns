@@ -41,6 +41,7 @@ checkConstraint tree cstr
 match :: Identificator -> Cell -> Bool
 match (Label l) (label,_,_,_) = l == label
 match (Content c) (_,_,_,content) = c == (concat content)
+match (Identificator l c) (label,_,_,content) = c == (concat content) && l == label
 
 
 

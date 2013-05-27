@@ -12,7 +12,7 @@ module Constraints
 type Cmd = String
 
 -- used, to know where we must look
-data Identificator = Label String | Content String deriving (Show, Read)
+data Identificator = Label String | Content String | Identificator String String deriving (Show, Read)
 
 data Item = Item String | PropContent deriving (Show, Read, Eq)
 type Items = [Item]

@@ -3,13 +3,18 @@ import Data.Char( intToDigit )
 import Util
 import Tree
 
-
+data EditorInfo =
+	EditorInfo {
+		nbSec :: Int,
+		nbSecEditor :: Int,
+		participants :: [String]
+	} deriving (Read)
 
 -- Generate, entry point. Create the participant's list
 main :: IO()
 main = do
 	args <- getArgs
-	start (args ++ [createList 20])
+	if (head args == "-g") then start (args ++ [createList 20]) else start' args
 
 
 
@@ -20,6 +25,13 @@ start (file:nbSec:e:ps:_) = writeFile file $ showTree ["Topic","Editor","Section
 
 
 
+-- start', parse arguments and write generated tree in a file
+-- @[String] -> args
+start' :: [String] -> IO()
+start' (file:args) = writeFile file $ showTree ["Topic","Editor","Section","Editor2"] $ generate' (read (concat args) :: EditorInfo)
+
+
+
 -- generate, generate the tree
 -- @[Participant] -> participants
 -- @Int -> number of section
@@ -27,6 +39,16 @@ start (file:nbSec:e:ps:_) = writeFile file $ showTree ["Topic","Editor","Section
 -- @NTree Cell -> generated tree
 generate :: [Participant] -> Int -> Int -> NTree Cell
 generate participants nbSec nbSecEditor = Node ("Root","1","null",[]) $ editorLevel [] participants nbSec nbSecEditor 0
+
+
+
+-- generate', generate the tree
+-- @[Participant] -> participants
+-- @Int -> number of section
+-- @Int -> number of section editor
+-- @NTree Cell -> generated tree
+generate' :: EditorInfo -> NTree Cell
+generate' EditorInfo {nbSec = nS, nbSecEditor = nSE, participants = ps} = Node ("Root","1","null",[]) $ editorLevel [] ps nS nSE 0
 
 
 
