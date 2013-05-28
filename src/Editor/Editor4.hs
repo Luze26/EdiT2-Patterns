@@ -1,42 +1,23 @@
-import System.Environment( getArgs )
 import Data.Char( intToDigit )
-import Util
 import Tree
+import Util
+import qualified EditorPatternInformation as Info
 
 
 
--- Editor pattern's informatio
--- @nbSec -> number of sections
--- @nbSecEditor -> number of editor per section
--- @participants -> list of participants
-data EditorInfo =
-	EditorInfo {
-		nbSec :: Int,
-		nbSecEditor :: Int,
-		participants :: [String]
-	} deriving (Read)
+editorColumns :: [String]
+editorColumns = ["Topic","Editor1","Section","Editor2"]
+
+
+
+tree :: NTree Cell
+tree = generate Info.participants Info.nbSec Info.nbSecEditor
 
 
 
 -- Generator's entry point
 main :: IO()
-main = do
-	args <- getArgs
-	if (head args == "-g") then start (args ++ [createList 20]) else start' args
-
-
-
--- start, parse arguments and write generated tree in a file
--- @[String] -> args
-start :: [String] -> IO()
-start (file:nbSec:e:ps:_) = writeFile file $ showTree ["Topic","Editor","Section","Editor2"] $ generate (read ps::[String]) (readInt nbSec) $ readInt e
-
-
-
--- start', parse arguments and write generated tree in a file
--- @[String] -> args
-start' :: [String] -> IO()
-start' (file:args) = writeFile file $ showTree ["Topic","Editor","Section","Editor2"] $ generate' (read (concat args) :: EditorInfo)
+main = writeFile Info.file $ (showTree editorColumns tree) ++ scriptName ++ (objectList tree) ++ (teacherNotes $ nbLeaf tree)
 
 
 
@@ -50,16 +31,6 @@ generate participants nbSec nbSecEditor = Node ("Root","1","null",[]) $ editorLe
 
 
 
--- generate', generate the tree
--- @[Participant] -> participants
--- @Int -> number of section
--- @Int -> number of section editor
--- @NTree Cell -> generated tree
-generate' :: EditorInfo -> NTree Cell
-generate' EditorInfo {nbSec = nS, nbSecEditor = nSE, participants = ps} = Node ("Root","1","null",[]) $ editorLevel [] ps nS nSE 0
-
-
-
 -- editorLevel, generate the topic and editor level
 -- @[Participant] -> participants already been editor
 -- @[Participant] -> participants remaining to be editor
@@ -69,7 +40,7 @@ generate' EditorInfo {nbSec = nS, nbSecEditor = nSE, participants = ps} = Node (
 -- @NTree Cell -> generated subtree under the root node
 editorLevel :: [Participant] -> [Participant] -> Int -> Int -> Int -> [NTree Cell]
 editorLevel _ [] _ _ _ = []
-editorLevel participants (p:ps) nbSec nbSecEditor i = Node ("Topic", tId, "1", [ "Topic" ++ strI ]) [ Node ("Editor", eId, tId, [p]) $ sectionLevel subeditor subeditor eId strI nbSec nbSecEditor 0] : editorLevel (p:participants) ps nbSec nbSecEditor (i+1)
+editorLevel participants (p:ps) nbSec nbSecEditor i = Node ("Topic", tId, "1", [ "Topic" ++ strI ]) [ Node ("Editor1", eId, tId, [p]) $ sectionLevel subeditor subeditor eId strI nbSec nbSecEditor 0] : editorLevel (p:participants) ps nbSec nbSecEditor (i+1)
 	where
 		strI = show (i+1)
 		tId = '1':strI

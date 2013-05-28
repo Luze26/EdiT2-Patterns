@@ -9,7 +9,9 @@ module Tree
 	showTree,
 	readTree,
 	node,
-	cellComponents
+	subtrees,
+	cellComponents,
+	nbLeaf
 ) where
 
 -- name of the column, in which the cell is
@@ -38,11 +40,31 @@ node (Node cell _) = cell
 
 
 
+-- subtrees, return subtrees
+-- @NTree Cell -> the tree
+-- @[NTree Cell] -> sbtrees
+subtrees :: NTree Cell -> [NTree Cell]
+subtrees (Node _ strees) = strees
+
+
+
 -- cellComponents, return the components
 -- @Cell -> the cell
 -- @CellComponents -> components
 cellComponents :: Cell -> CellComponents
 cellComponents (_,_,_,components) = components
+
+
+
+-- nbLeaf, return the number of leaves for the given tree
+-- @NTree Cell -> the tree
+-- @Int -> number of leaves for the tree
+nbLeaf :: NTree Cell -> Int
+nbLeaf tree
+	| sbtrees == [] = 1
+	| otherwise = foldl (\acc x -> acc + nbLeaf x) 0 sbtrees
+	where
+		sbtrees = subtrees tree
 
 
 
@@ -77,10 +99,10 @@ showTree columns tree = show columns ++ "\n\nscript=" ++ (showTree' True "" tree
 -- @NTree Cell -> the tree to convert
 -- @String -> the tree in .t2 format
 showTree' :: Bool -> String -> NTree Cell -> String
-showTree' noComma tabs (Node cell subtrees) = tabs ++ "Node " ++ (show cell) ++ starting ++ (showSubTrees ('\t':tabs) subtrees) ++ ending
+showTree' noComma tabs (Node cell sbtrees) = tabs ++ "Node " ++ (show cell) ++ starting ++ (showSubTrees ('\t':tabs) sbtrees) ++ ending
 	where
 		starting
-			| subtrees == [] = " ["
+			| sbtrees == [] = " ["
 			| otherwise = " [\n"
 		ending
 			| noComma = "]"
@@ -94,6 +116,6 @@ showTree' noComma tabs (Node cell subtrees) = tabs ++ "Node " ++ (show cell) ++ 
 -- @String -> subtrees in format .t2
 showSubTrees :: String -> [NTree Cell] -> String
 showSubTrees _ [] = ""
-showSubTrees tabs (s:subtrees) = showTree' noComma tabs s ++ (showSubTrees tabs subtrees)
+showSubTrees tabs (s:sbtrees) = showTree' noComma tabs s ++ (showSubTrees tabs sbtrees)
 	where
-		noComma = subtrees == []
+		noComma = sbtrees == []

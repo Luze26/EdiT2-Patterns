@@ -41,5 +41,3 @@ generate'' (name, (r:row):rows) lvls pid i = (ls, (Node (name, id, pid, r) subtr
 			| lvls == [] = ([], [])
 			| otherwise = generate'' (head lvls) (tail lvls) id 1
 		(ls, nexttree) = generate'' (name, row:rows) lsub pid (i+1)
-		
-		

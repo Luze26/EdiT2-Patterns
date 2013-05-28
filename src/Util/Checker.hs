@@ -1,6 +1,7 @@
 import Tree
 import Constraints
 import System.Environment( getArgs )
+import Data.List( intersect )
 
 
 -- Checker, entry point
@@ -38,10 +39,10 @@ checkConstraint tree cstr
 -- @Identificator -> identificator
 -- @Cell -> the cell
 -- @Bool -> True if the cell match the identificator
-match :: Identificator -> Cell -> Bool
-match (Label l) (label,_,_,_) = l == label
-match (Content c) (_,_,_,content) = c == (concat content)
-match (Identificator l c) (label,_,_,content) = c == (concat content) && l == label
+match :: Identificator -> NTree Cell -> Bool
+match (Label l) (Node (label,_,_,_) _) = l == label
+match (Content c) (Node (_,_,_,content) _) = c == (concat content)
+match (Identificator l c) (Node (label,_,_,content) _) = c == (concat content) && l == label
 
 
 
@@ -49,94 +50,63 @@ match (Identificator l c) (label,_,_,content) = c == (concat content) && l == la
 -- @NTree Cell -> the tree
 -- @Identificator -> identificator used to know where we must look
 -- @[NTree Cell] -> subtrees involved
-lookFor :: NTree Cell -> (Cell -> Bool) -> [NTree Cell]
-lookFor node@(Node cell subtrees) match'
-	| match' cell  = node : foldl (\acc x -> acc ++ (lookFor x match')) [] subtrees
-	| otherwise = foldl (\acc x -> acc ++ (lookFor x match')) [] subtrees
+lookFor :: NTree Cell -> (NTree Cell -> Bool) -> [NTree Cell]
+lookFor node@(Node _ sbtrees) match'
+	| match' node  = node : foldl (\acc x -> acc ++ (lookFor x match')) [] sbtrees
+	| otherwise = foldl (\acc x -> acc ++ (lookFor x match')) [] sbtrees
 
 
 
--- nodes, return a list of nodes content under the given trees
--- @[NTree Cell] -> trees
--- @[String] -> contents of the nodes
-nodes :: [NTree Cell] -> [String]
-nodes [] = []
-nodes ((Node (_,_,_,contents) subtrees):trees)  = (contents' : nodes subtrees) ++ nodes trees
+-- notContainedId, return the list of identifcatos not found in the tree
+-- @NTree Cell -> the tree
+-- @Identificatos -> identificators
+notContainedId :: Identificators -> NTree Cell -> Identificators
+notContainedId ids tree
+	| idLeft == [] = []
+	| otherwise = foldl (intersect) idLeft (map (notContainedId idLeft) (subtrees tree))
 	where
-		contents' = concat contents
+		idLeft = notContainedId' tree ids
 
 
 
--- contains, return True if all the elems of the first list are in the second list
--- @Items -> elems which must be found in the second list
--- @[String] -> list where we look
--- @Bool -> if elems of the first list appeared in the second list
-contains :: Items -> [String] -> Bool
-contains [] _ = True
-contains ((Item x):xs) ys
-	| elem x ys = contains xs ys
-	| otherwise = False
-
-
-
--- containsNot, return True if no one of the elems of the first list are in the second list
--- @Items -> elems which shouldn't be found in the second list
--- @[String] -> list where we look
--- @Bool -> if elems of the first list don't appeared in the second list
-containsNot :: Items -> [String] -> Bool
-containsNot [] _ = True
-containsNot ((Item x):xs) ys
-	| elem x ys = False
-	| otherwise = containsNot xs ys
-
-
-
--- replaceItemsValues, replace PropContent items by their value for the root node
--- @Cell -> the root node
--- @Items -> items
--- @Items -> items of the form Items String
-replaceItemsValues :: Cell -> Items -> Items
-replaceItemsValues _ [] = []
-replaceItemsValues cell@(_, _, _, content) (PropContent:itemss) = Item (concat content) : replaceItemsValues cell itemss
-replaceItemsValues cell (i:itemss) = i : replaceItemsValues cell itemss
+notContainedId' :: NTree Cell -> Identificators -> Identificators
+notContainedId' _ [] = []
+notContainedId' tree (id:ids)
+	| match id tree = notContainedId' tree ids
+	| otherwise = id :  notContainedId' tree ids
 
 
 
 -- checkUnder, return True if all the items in the first list are in all subtrees selected
--- @Items -> what to look for
+-- @Identificatos -> what to look for
 -- @[NTree Cell] -> trees
-checkUnder :: Items -> [NTree Cell] -> Bool
+checkUnder :: Identificators -> [NTree Cell] -> Bool
 checkUnder _ [] = True
 checkUnder itemss (t:trees)
-	| contains items' (nodes [t]) == False = False
-	| otherwise = checkUnder items' trees
-	where
-		items' = replaceItemsValues (node t) itemss
+	| notContainedId itemss t == [] = checkUnder itemss trees
+	| otherwise = False
 
 
 
 -- checkUnder', return True if all the items in the first list are in a subtree selected, or none of the item are in
--- @Items -> what to look for
+-- @Identificatos -> what to look for
 -- @[NTree Cell] -> trees
-checkUnder' :: Items -> [NTree Cell] -> Bool
+checkUnder' :: Identificators -> [NTree Cell] -> Bool
 checkUnder' _ [] = True
 checkUnder' itemss (t:trees)
-	| contains itemss nodes' || containsNot itemss nodes' = checkUnder' itemss trees
+	| badId == itemss || badId == [] = checkUnder' itemss trees
 	| otherwise = False
 	where
-		nodes' = nodes [t]
-
+		badId = notContainedId itemss t
 
 
 -- checkBefore, check if the first item is before the second item (with left right traversal on root nodes of trees)
--- @Items -> what to look for
+-- @Identificatos -> what to look for
 -- @[NTree Cell] -> trees
-checkBefore :: Items -> [NTree Cell] -> Bool
+checkBefore :: Identificators -> [NTree Cell] -> Bool
 checkBefore _ [] = False
 checkBefore (_:[]) _ = False
 checkBefore items@(a:b:_) (tree:trees)
-	| b == comp = False
-	| a == comp = True
+	| match a tree = True
+	| match b tree = False
 	| otherwise = checkBefore items trees
-	where
-		comp = Item $ head $ cellComponents $ node tree
