@@ -1,8 +1,20 @@
 module Util where
 
 
+-- Activity
+type Activity = String
 
+-- Group
+type Group = String
+
+-- Participant
 type Participant = String
+
+-- Role
+type Role = String
+
+-- Resource
+type Resource = String
 
 
 
