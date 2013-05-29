@@ -1,5 +1,9 @@
 module Util where
 
+import Tree
+import Constraints
+
+-- Types ////////////////////////////////////////////////////////////////////////
 
 -- Activity
 type Activity = String
@@ -17,12 +21,48 @@ type Role = String
 type Resource = String
 
 
+-- objects
+type PatternObjects = (ActivityObjects, GroupObjects, ParticipantObjects, ResourceObjects, RoleObjects)
+type ActivityObjects = [(Name,Description)]
+type GroupObjects = [(Name,Description)]
+type ParticipantObjects = [(Login,FirstName,Surname,Email,City,Country)]
+type ResourceObjects = [(Name,Description,MoodleTableName,MoodleResourceID)]
+type RoleObjects = [(Name,Description)]
+type TeacherNotes = [String]
+
+
+-- information
+type Name = String
+type Description = String
+type Login = String
+type FirstName = String
+type Surname = String
+type Email = String
+type Country = String
+type City = String
+type MoodleTableName = String
+type MoodleResourceID = String
+
+
+-- Error
+data Possible a = Possible a | NotPossible String deriving (Eq)
+
+
+
+-- Util functions //////////////////////////////////////////////////////////////////////////////////////
 
 -- readInt, read an int
 -- @String -> the number
 -- @Int -> int value
 readInt :: String -> Int
 readInt n = read n
+
+
+
+-- participantsLogins, return the list of participants logins
+-- @ParticipantObjects -> participants objects
+participantsLogins :: ParticipantObjects -> [Participant]
+participantsLogins ps = map (\(login,_,_,_,_,_) -> login) ps
 
 
 
@@ -45,26 +85,87 @@ createList' n = ('\"':'e':(show n)++"\",") ++ createList' (n-1)
 
 
 
--- Functions to write .t2 elements ///////////////////////////////////////////////////////////////////
+-- Functions to write .t2 ///////////////////////////////////////////////////////////////////
 
-scriptName :: String -> String
-scriptName name = "@scriptName = " ++ name ++ "\n"
-
-objectList :: [(String, [String])] -> String
-objectList objects = foldl (\acc x -> acc ++ objectList' x) "" objects
-
-objectList' :: (String, [String]) -> String
-objectList' (name, list) = "objectList@" ++ name ++ "[" ++ (objectList'' list) ++ "]\n"
-
-objectList'' :: [String] -> String
-objectList'' [] = ""
-objectList'' (x:[]) = "{\"" ++ x ++ "\", \"" ++ x ++ " description\"}"
-objectList'' (x:xs) = "{\"" ++ x ++ "\", \"" ++ x ++ " description\"}," ++ objectList'' xs
+-- writeT2, write the .t2 file
+-- @String -> file path
+-- @[String] -> notions
+-- @NTree Cell -> the tree
+-- @PatternObjects -> objects
+-- @TeacherNotes -> notes
+writeT2 :: String -> [String] -> NTree Cell -> PatternObjects -> TeacherNotes -> IO()
+writeT2 file notions tree objects notes = writeFile file $ show notions ++ "\n\nscript=" ++
+	(showTree tree) ++ "\n\n" ++ (showObjects objects) ++ "\n\nteacherNotes = " ++ (show notes)
 
 
-teacherNotes :: Int -> String
-teacherNotes nb = concat $ replicate nb "@teacherNotes = \"\"\n"
 
+-- writeT2Err, write the .t2 error file
+-- @String -> file path
+-- @[NotPossible String] -> errors
+writeT2Err :: String -> [Possible a] -> IO()
+writeT2Err file errs = writeFile file $ errors errs
+
+
+
+-- showObjects, convert pattern objects in a string for .t2
+-- @PatternObjects -> objects
+-- @String -> objects for .t2
+showObjects :: PatternObjects -> String
+showObjects (a,g,p,r,ro) = "activityObjectsList = " ++ (show a) ++ "\ngroupObjectsList = " ++ (show g) ++
+	"\nparticipantObjectsList = " ++ (show p) ++ "\nresourceObjectsList = " ++ (show r) ++ "\nroleObjectsList = " ++ (show ro)
+
+
+
+-- errors, convert errors in a .t2 format
+-- @[NotPossible String] -> errors
+-- @String -> errors in .t2
+errors :: [Possible a] -> String
+errors err = "Error=[" ++ (errors' err True) ++ "]\n"
+
+
+
+-- errors', cf errors
+errors' :: [Possible a] -> Bool -> String
+errors' [] _ = ""
+errors' (NotPossible msg:es) first = (if (first) then "\"" else ",\"") ++ msg ++ "\"" ++ errors' es False
+
+
+
+-- Functions to read .t2 ///////////////////////////////////////////////////////////////////
+
+readHeader :: String -> String
+readHeader content = head $ lines content
+
+
+
+-- stripHeader, strip the header
+-- @String -> the file content
+-- @String -> the string without the header
+stripHeader :: String -> String
+stripHeader text = drop 7 $ concatMap (\l -> l ++ "\n") $ drop 2 $ lines text
+
+
+-- stripFooter, return lines of the string without the footer
+-- @[String] -> the file content in lines
+-- @[String] -> all lines without footer's lines
+stripFooter :: [String] -> [String]
+stripFooter [] = []
+stripFooter (l:ls)
+	| l == "" = []
+	| otherwise = l : (stripFooter ls)
+
+
+readTree :: String -> NTree Cell
+readTree content = read (concat $ stripFooter $ lines $ stripHeader content)
+
+
+
+-- Functions to read constraint
+
+readConstraints :: String -> IO [Cstr]
+readConstraints file = do
+	content <- readFile file
+	return (map (\l -> read l :: Cstr) (lines content))
 
 
 -- Helpers to split participants in groups ////////////////////////////////////////////////////////////
@@ -86,14 +187,15 @@ splitParticipants participants (n:numbers) = first : (splitParticipants rest num
 -- @Int -> number of participants per group wanted
 -- @Int -> above margin tolerated
 -- @Int -> below margin tolerated
--- @[Int] -> size repartion
-repartition :: Int -> Int -> Int -> Int -> [Int]
+-- @Possible [Int] -> size repartion
+repartition :: Int -> Int -> Int -> Int -> Possible [Int]
 repartition nbP n a b
-	| ok = list1
-	| otherwise = list2
+	| ok = Possible list1
+	| ok2 = Possible list2
+	| otherwise = NotPossible "Can't do a good repartition"
 	where
 		(ok, list1) = repartitionUniform nbP n a b 0
-		(_, list2) = repartition' nbP n a b 0
+		(ok2, list2) = repartition' nbP n a b 0
 
 
 

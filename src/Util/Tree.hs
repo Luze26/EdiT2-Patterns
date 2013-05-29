@@ -7,7 +7,6 @@ module Tree
 	Cell,
 	NTree (..),
 	showTree,
-	readTree,
 	node,
 	subtrees,
 	cellComponents,
@@ -68,28 +67,11 @@ nbLeaf tree
 
 
 
--- readTree, parse a String into a NTree Cell
--- @String -> the string describing a tree
--- @NTree Cell -> the tree
-readTree :: String -> NTree Cell
-readTree tree = read $ stripHeader tree
-
-
-
--- stripHeader, return only the tree
--- @String -> the file content
--- @String -> the tree
-stripHeader :: String -> String
-stripHeader text = drop 7 $ concat $ drop 2 $ lines text
-
-
-
 -- showTree, convert a tree in a string in .t2 format
--- @[String] -> column names
 -- @NTree Cell -> the tree to convert
 -- @String -> the tree in .t2 format
-showTree :: [String] -> NTree Cell -> String
-showTree columns tree = show columns ++ "\n\nscript=" ++ (showTree' True "" tree) 
+showTree :: NTree Cell -> String
+showTree tree = showTree' True "" tree
 
 
 
