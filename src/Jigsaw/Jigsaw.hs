@@ -159,15 +159,23 @@ generateResourcesLvl = ("Resources", map (\x -> map (\y -> [y]) x) (createResour
 
 
 -- createResourcesInitial, create resources list for the expert level
--- @[[String]] -> resources
-createResourcesInitial :: [[String]]
-createResourcesInitial = foldl (\acc (t,nb) -> acc ++ splitList2 (resources t) nb (nbResources t)) [] nbGroupsInitialPerThemes 
+-- @[[Resource]] -> resources
+createResourcesInitial :: [[Resource]]
+createResourcesInitial = foldl (\acc (t, gs) -> acc ++ (createResourcesInitial' gs $ splitList2 (resources t) (length gs) (nbResources t))) [] nbGroupsInitialPerThemes 
+
+
+
+-- createResourcesInitial', create resources list for the expert level
+-- @[[Resource]] -> resources
+createResourcesInitial' :: [Int] -> [[Resource]] -> [[Resource]]
+createResourcesInitial' [] _ = []
+createResourcesInitial' (x:xs) (r:rs) = replicate x r ++ createResourcesInitial' xs rs
 
 
 
 -- createResourcesExpert, create resources list for the expert level
--- @[[String]] -> resources
-createResourcesExpert :: [[String]]
+-- @[[Resource]] -> resources
+createResourcesExpert :: [[Resource]]
 createResourcesExpert = createResourcesExpert' Info.themes createParticipantsExpert
 
 
@@ -175,8 +183,8 @@ createResourcesExpert = createResourcesExpert' Info.themes createParticipantsExp
 -- createResourcesExpert', create resources for the expert level
 -- @[Theme] -> themes
 -- @[ExpertGroup] -> Expert groups
--- @[[String]] -> resources
-createResourcesExpert' :: [Theme] -> [ExpertGroup] -> [[String]]
+-- @[[Resource]] -> resources
+createResourcesExpert' :: [Theme] -> [ExpertGroup] -> [[Resource]]
 createResourcesExpert' [] _ = []
 createResourcesExpert' (t:themes) (g:groups) = map (\p -> resourcesTheme) g ++ createResourcesExpert' themes groups
 	where
@@ -184,8 +192,8 @@ createResourcesExpert' (t:themes) (g:groups) = map (\p -> resourcesTheme) g ++ c
 
 
 -- createResourcesJigsaw, create resources list for the jigsaw level
--- @[[String]] -> resources
-createResourcesJigsaw :: [[String]]
+-- @[[Resource]] -> resources
+createResourcesJigsaw :: [[Resource]]
 createResourcesJigsaw = replicate nbParticipants allResources
 
 
@@ -264,9 +272,9 @@ nbGroupsInitial = length createParticipantsInitial
 
 
 -- nbGroupsInitialPerThemes, number of initial group per themes
--- @Int -> number of initial group per themes
-nbGroupsInitialPerThemes :: [(Theme, Int)]
-nbGroupsInitialPerThemes = foldl (\acc t -> (t, foldl (\acc2 (t2,_) -> acc2 + if (name t2 == name t) then 1 else 0) 0 createParticipantsInitialWithTheme) : acc) [] Info.themes
+-- @[(Theme, [Int])] -> (theme, length of groups of the theme)
+nbGroupsInitialPerThemes :: [(Theme, [Int])]
+nbGroupsInitialPerThemes = foldl (\acc t -> acc ++ [(t, foldl (\acc2 (t2,ps) -> if (name t2 == name t) then acc2 ++ [length ps] else acc2) [] createParticipantsInitialWithTheme)]) [] Info.themes
 
 
 

@@ -20,4 +20,4 @@ data Theme =
 		lowerMargin :: Int,			-- number of additionnal experts allowed in a Jigsaw group
 		upperMargin :: Int,			-- number of less experts allowed in a Jigsaw group
 		nbResources :: Int			-- number of resources of this theme in an initial group
-	}
+	} deriving ( Show )
