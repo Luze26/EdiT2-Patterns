@@ -11,7 +11,7 @@ import qualified JigsawPatternInformation as Info
 main :: IO()
 main
 	| notPossible == [] = writeT2 Info.file ["Activities", "Groups", "Participants", "Resources"] (generate generateLevels)
-		(Info.activityObjectsList, Info.groupObjectsList, Info.participantObjectsList, Info.resourceObjectsList, []) Info.teacherNotes
+		(Info.activityObjectsList, groupObjectsList, Info.participantObjectsList, Info.resourceObjectsList, []) Info.teacherNotes
 	| otherwise = writeT2Err Info.file notPossible
 
 
@@ -281,3 +281,13 @@ nbParticipants = length participants
 -- @[Participant] -> list of participants logins
 participants :: [Participant]
 participants = participantsLogins Info.participantObjectsList
+
+
+
+-- groupObjectsList, create the group objects list for .t2
+-- @GroupObjects
+groupObjectsList :: GroupObjects
+groupObjectsList = groupsInitial ++ groupsExpertJigsaw
+	where
+		groupsInitial = map (\(n, (t,_)) -> (n, n ++ " sur le thème " ++ (name t))) $ zip (concat createGroupsInitial) createParticipantsInitialWithTheme
+		groupsExpertJigsaw = map (\g -> (g,g)) $ concat (createGroupsExpert ++ createGroupsJigsaw)
