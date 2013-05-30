@@ -1,4 +1,5 @@
 import Tree
+import Util ( readTree, readConstraints )
 import Constraints
 import System.Environment( getArgs )
 import Data.List( intersect )
@@ -13,10 +14,20 @@ main = do
 
 
 start :: [String] -> IO()
-start (output:input:cstrs) = do
-		tree <- readFile input
-		print $ show $ checkConstraint (readTree tree) ((read (concat cstrs))::Cstr)
-		-- writeFile output $ show $ checkConstraint (readTree tree) ((read (concat cstrs))::Cstr)
+start (output:input:cstrs:_) = do
+		tree <- readTree input
+		constraints <- readConstraints cstrs
+		writeFile output $ check tree constraints
+
+
+
+-- check, check all the constraints
+-- @NTree Cell -> the tree
+-- @[Cstr] -> the constraints
+-- @String -> results
+check :: NTree Cell -> [Cstr] -> String
+check _ [] = ""
+check tree (c:cstrs) = (show $ checkConstraint tree c) ++ "\n" ++ check tree cstrs 
 
 
 
@@ -29,7 +40,7 @@ checkConstraint tree cstr
 	| command cstr == "under" = checkUnder (items cstr) $ lookFor tree $ match (wher cstr)
 	| command cstr == "!under" = not $ checkUnder (items cstr) $ lookFor tree $ match (wher cstr)
 	| command cstr == "under?" = checkUnder' (items cstr) $ lookFor tree $ match (wher cstr)
-	| command cstr == "!under?" = not $ checkUnder' (items cstr) $ lookFor tree $ match (wher cstr)
+	| command cstr == "!under?" = checkNotUnder' (items cstr) $ lookFor tree $ match (wher cstr)
 	| command cstr == "before" = checkBefore (items cstr) $ lookFor tree $ match (wher cstr)
 	| otherwise = False
 
@@ -59,7 +70,7 @@ lookFor node@(Node _ sbtrees) match'
 
 -- notContainedId, return the list of identifcatos not found in the tree
 -- @NTree Cell -> the tree
--- @Identificatos -> identificators
+-- @Identificators -> identificators
 notContainedId :: Identificators -> NTree Cell -> Identificators
 notContainedId ids tree
 	| idLeft == [] = []
@@ -88,7 +99,7 @@ checkUnder itemss (t:trees)
 
 
 
--- checkUnder', return True if all the items in the first list are in a subtree selected, or none of the item are in
+-- checkUnder', return True if all the items in the first list are in a subtree selected, or none of the items are in
 -- @Identificatos -> what to look for
 -- @[NTree Cell] -> trees
 checkUnder' :: Identificators -> [NTree Cell] -> Bool
@@ -98,6 +109,20 @@ checkUnder' itemss (t:trees)
 	| otherwise = False
 	where
 		badId = notContainedId itemss t
+
+
+
+-- checkNotUnder', return True if only one item in the first list is in a subtree selected, or none of the items are in
+-- @Identificatos -> what to look for
+-- @[NTree Cell] -> trees
+checkNotUnder' :: Identificators -> [NTree Cell] -> Bool
+checkNotUnder' _ [] = True
+checkNotUnder' itemss (t:trees)
+	| badId == 1 || badId == 0 = checkNotUnder' itemss trees
+	| otherwise = False
+	where
+		badId = length $ notContainedId itemss t
+
 
 
 -- checkBefore, check if the first item is before the second item (with left right traversal on root nodes of trees)

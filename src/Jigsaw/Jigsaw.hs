@@ -97,7 +97,7 @@ createParticipantsInitialWithTheme = createParticipantsInitial' createParticipan
 -- @[(Theme, InitialGroup)] -> initial groups with their associated theme
 createParticipantsInitial' :: [ExpertGroup] -> [Theme] -> [[Int]] -> [(Theme, InitialGroup)]
 createParticipantsInitial' [] _ _ = []
-createParticipantsInitial' (g:groups) (t:themes) (r:rs) = map (\x -> (t,x)) (splitParticipants g r) ++ createParticipantsInitial' groups themes rs
+createParticipantsInitial' (g:groups) (t:themes) (r:rs) = map (\x -> (t,x)) (splitList g r) ++ createParticipantsInitial' groups themes rs
 
 
 
@@ -145,7 +145,8 @@ createParticipantsExpert'' (t:themes) ps = first : createParticipantsExpert'' th
 createParticipantsJigsaw :: [JigsawGroup]
 createParticipantsJigsaw = case repartitionJigsaw of
 								NotPossible msg -> []
-								Possible list ->  splitParticipants participants list
+								Possible list ->  splitList participants list
+
 
 
 -- //////////////////////////////////// RESOURCES ////////////////////////////////////
@@ -160,7 +161,7 @@ generateResourcesLvl = ("Resources", map (\x -> map (\y -> [y]) x) (createResour
 -- createResourcesInitial, create resources list for the expert level
 -- @[[String]] -> resources
 createResourcesInitial :: [[String]]
-createResourcesInitial = foldl (\acc (t,ps) -> acc ++ (map (\p -> resources t) ps)) [] createParticipantsInitialWithTheme
+createResourcesInitial = foldl (\acc (t,nb) -> acc ++ splitList2 (resources t) nb (nbResources t)) [] nbGroupsInitialPerThemes 
 
 
 
@@ -259,6 +260,13 @@ nbThemes = length Info.themes
 -- @Int -> number of initial group
 nbGroupsInitial :: Int
 nbGroupsInitial = length createParticipantsInitial
+
+
+
+-- nbGroupsInitialPerThemes, number of initial group per themes
+-- @Int -> number of initial group per themes
+nbGroupsInitialPerThemes :: [(Theme, Int)]
+nbGroupsInitialPerThemes = foldl (\acc t -> (t, foldl (\acc2 (t2,_) -> acc2 + if (name t2 == name t) then 1 else 0) 0 createParticipantsInitialWithTheme) : acc) [] Info.themes
 
 
 

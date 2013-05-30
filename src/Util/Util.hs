@@ -155,8 +155,10 @@ stripFooter (l:ls)
 	| otherwise = l : (stripFooter ls)
 
 
-readTree :: String -> NTree Cell
-readTree content = read (concat $ stripFooter $ lines $ stripHeader content)
+readTree :: String -> IO (NTree Cell)
+readTree file = do
+	content <- readFile file
+	return (read $ concat $ stripFooter $ lines $ stripHeader content)
 
 
 
@@ -168,17 +170,35 @@ readConstraints file = do
 	return (map (\l -> read l :: Cstr) (lines content))
 
 
--- Helpers to split participants in groups ////////////////////////////////////////////////////////////
+-- Helpers to split lists ////////////////////////////////////////////////////////////
 
--- splitParticipants, split participants into group of size given by the list
--- @[Participants] -> participants
--- @[Int] -> list of size for groups
--- @[[Participant]] -> partcipants splited into groups
-splitParticipants :: [a] -> [Int] -> [[a]]
-splitParticipants [] _ = []
-splitParticipants participants (n:numbers) = first : (splitParticipants rest numbers)
+-- splitList, split list into group of size given by the list
+-- @[a] -> list to split
+-- @[Int] -> list of groups sizes
+-- @[[a]] -> splitted list
+splitList :: [a] -> [Int] -> [[a]]
+splitList [] _ = []
+splitList list (n:numbers) = first : (splitList rest numbers)
 	where
-		(first, rest) = splitAt n participants
+		(first, rest) = splitAt n list
+
+
+
+-- splitList2, split list into group of given size
+-- @[a] -> list to split
+-- @Int -> number of split
+-- @Int -> size of split
+-- @[[a]] -> splitted list
+splitList2 :: [a] -> Int -> Int -> [[a]]
+splitList2 [] _ _ = []
+splitList2 list nb size = splitList2' (cycle list) nb size
+
+
+
+-- splitList2', cf splitList2, expect that the list is now infinite
+splitList2' :: [a] -> Int -> Int -> [[a]]
+splitList2' _ 0 _ = []
+splitList2' list nb size = take size list : splitList2' (drop size list) (nb-1) size
 
 
 
@@ -231,4 +251,4 @@ repartitionUniform nbP n a b m
 	| otherwise = (False, [])
 	where
 		nb = n+m
-		nb1 = n-m 
+		nb1 = n-m

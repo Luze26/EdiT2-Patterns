@@ -3,7 +3,7 @@ module JigsawPatternInformation where
 import JigsawModel 
 import Util 
  
-themes = [Theme{name="t1", resources = ["r1", "r2"], nbExpert=1, lowerMargin = 0, upperMargin = 0},Theme{name="tg", resources = ["bhu", "r2"], nbExpert=1, lowerMargin = 0, upperMargin = 0}] 
+themes = [Theme{name="t1", resources = ["r1", "r2"], nbExpert=1, lowerMargin = 0, upperMargin = 0, nbResources = 1},Theme{name="tg", resources = ["bhu", "r2"], nbExpert=1, lowerMargin = 0, upperMargin = 0, nbResources = 2}] 
  
 nbPPG :: Int 
 nbPPG = 1
@@ -13,8 +13,6 @@ above = 0
  
 below :: Int 
 below = 0
- 
-dispatchResources = True 
  
 file = "../../out/jig.t2" 
  
