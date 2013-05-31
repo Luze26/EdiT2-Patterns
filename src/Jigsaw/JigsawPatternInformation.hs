@@ -26,6 +26,3 @@ participantObjectsList = [("etu1","","","","",""), ("etu2","","","","",""), ("et
  
 resourceObjectsList :: ResourceObjects 
 resourceObjectsList = [("r1","blablabla","",""),("r2","a","",""),("bhu","fff","",""),("r2","a","",""),("zz","fff","",""),("aa","a","","")]
- 
-teacherNotes :: TeacherNotes 
-teacherNotes = ["qq","","","",""]

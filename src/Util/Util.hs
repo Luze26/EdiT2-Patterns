@@ -45,7 +45,7 @@ type MoodleResourceID = String
 
 
 -- Error
-data Possible a = Possible a | NotPossible String deriving (Eq)
+data Possible a = Possible a | NotPossible String deriving (Eq, Show)
 
 
 
@@ -93,9 +93,9 @@ createList' n = ('\"':'e':(show n)++"\",") ++ createList' (n-1)
 -- @NTree Cell -> the tree
 -- @PatternObjects -> objects
 -- @TeacherNotes -> notes
-writeT2 :: String -> [String] -> NTree Cell -> PatternObjects -> TeacherNotes -> IO()
-writeT2 file notions tree objects notes = writeFile file $ show notions ++ "\n\nscript=" ++
-	(showTree tree) ++ "\n\n" ++ (showObjects objects) ++ "\n\nteacherNotes = " ++ (show notes)
+writeT2 :: String -> [String] -> NTree Cell -> PatternObjects -> IO()
+writeT2 file notions tree objects = writeFile file $ show notions ++ "\n\nscript=" ++
+	(showTree tree) ++ "\n\n" ++ (showObjects objects) ++ "\n\nteacherNotes = " ++ (show $ replicate (nbLeaf tree) "")
 
 
 
@@ -252,3 +252,32 @@ repartitionUniform nbP n a b m
 	where
 		nb = n+m
 		nb1 = n-m
+
+
+
+-- repartition2, give a list of group size, for the best repartition
+-- @Int -> number of participants
+-- @[(Int, Int, Int)] -> List of groups with preference size 
+--		(number of participants per group wanted, above margin tolerated, below margin tolerated)
+-- @Possible [Int] -> size repartion
+repartition2 :: Int -> [(Int, Int, Int)] -> Possible [Int]
+repartition2 nbP groups
+	| sumSize == nbP = Possible sizeGroups
+	| (diffSum > 0 && diffSum <= sumAbove) || (diffSum < 0 && diffSum >= (-sumBelow)) = Possible $ repartition2' nbP diffSum groups
+	| otherwise = NotPossible "repartition not possible"
+	where
+		sizeGroups = map (\(nb,_,_) -> nb) groups
+		(sumSize, sumAbove, sumBelow) = foldl (\(s,a,b) (s',a',b') -> (s+s',a+a',b+b')) (0,0,0) groups
+		diffSum = nbP - sumSize
+
+
+
+repartition2' :: Int -> Int -> [(Int, Int, Int)] -> [Int]
+repartition2' _ _ [] = []
+repartition2' nbP diff ((nbG,aG,bG):groups) = size : repartition2' (nbP-size) (diff-extra) groups
+	where
+		size = nbG + extra
+		extra
+			| diff > 0 && aG > 0 = min diff aG
+			| diff < 0 && bG > 0 = max diff (-bG)
+			| otherwise = 0

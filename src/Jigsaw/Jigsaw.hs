@@ -11,7 +11,7 @@ import qualified JigsawPatternInformation as Info
 main :: IO()
 main
 	| notPossible == [] = writeT2 Info.file ["Activities", "Groups", "Participants", "Resources"] (generate generateLevels)
-		(Info.activityObjectsList, groupObjectsList, Info.participantObjectsList, Info.resourceObjectsList, []) Info.teacherNotes
+		(Info.activityObjectsList, groupObjectsList, Info.participantObjectsList, Info.resourceObjectsList, [])
 	| otherwise = writeT2Err Info.file notPossible
 
 
@@ -134,9 +134,12 @@ createParticipantsExpert' (p:ps) = createParticipantsExpert'' Info.themes p : cr
 -- @[[Participant]] -> participants splited between themes
 createParticipantsExpert'' :: [Theme] -> JigsawGroup -> [[Participant]]
 createParticipantsExpert'' [] _ = []
-createParticipantsExpert'' (t:themes) ps = first : createParticipantsExpert'' themes rest
+createParticipantsExpert'' themes ps = splitList ps $ repart
 	where
-		(first, rest) = splitAt (nbExpert t) ps
+		repart = case repartition2 (length ps) themesInfo of
+			Possible list -> list
+			NotPossible _ -> []
+		themesInfo = map (\t -> (nbExpert t, upperMargin t, lowerMargin t)) Info.themes
 
 
 

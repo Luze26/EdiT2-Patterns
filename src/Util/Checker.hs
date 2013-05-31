@@ -41,6 +41,7 @@ checkConstraint tree cstr
 	| command cstr == "!under" = not $ checkUnder (items cstr) $ lookFor tree $ match (wher cstr)
 	| command cstr == "under?" = checkUnder' (items cstr) $ lookFor tree $ match (wher cstr)
 	| command cstr == "!under?" = checkNotUnder' (items cstr) $ lookFor tree $ match (wher cstr)
+	| command cstr == "under1" = checkUnder1 (items cstr) $ lookFor tree $ match (wher cstr)
 	| command cstr == "before" = checkBefore (items cstr) $ lookFor tree $ match (wher cstr)
 	| otherwise = False
 
@@ -109,6 +110,34 @@ checkUnder' itemss (t:trees)
 	| otherwise = False
 	where
 		badId = notContainedId itemss t
+
+
+
+-- checkUnder1, return True if at least one items in the first list is in the subtree (for each subtrees)
+-- @Identificatos -> what to look for
+-- @[NTree Cell] -> trees
+checkUnder1 :: Identificators -> [NTree Cell] -> Bool
+checkUnder1 _ [] = True
+checkUnder1 itemss (t:trees)
+	| containsId itemss itemss 1 t = checkUnder1 itemss trees
+	| otherwise = False
+
+
+containsId :: Identificators -> Identificators -> Int -> NTree Cell -> Bool
+containsId _ _ 0 _ = True
+containsId [] _ _ _ = False
+containsId ids [] x tree =  containsId' ids x $ subtrees tree
+containsId ids (i:is) x tree
+	| match i tree = containsId ids is (x-1) tree
+	| otherwise = containsId ids is x tree
+
+
+
+containsId' :: Identificators -> Int -> [NTree Cell] -> Bool
+containsId' _ _ [] = False
+containsId' ids x (t:tree)
+	| containsId ids ids x t = True
+	| otherwise = containsId' ids x tree
 
 
 
