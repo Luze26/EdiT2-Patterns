@@ -4,11 +4,8 @@
 .depend*
 *.sh
 */RT
-src/Editor/Editor2
-src/Editor/Editor3
-src/Editor/Editor4
-src/Util/Checker
-src/Jigsaw/Jigsaw
-src/RT2/RT
+src/dist/build
+src/dist/package.conf.inplace
+src/dist/setup-config
 out/
 tests/

@@ -1,0 +1,18 @@
+Name:                ediT2-haskell
+Version:             0.5
+Description:         Pattern generator
+Author:              Yann Uzel
+Build-Type:          Simple
+Cabal-Version:       >=1.2
+Executable ediT2-Jigsaw
+  Main-is:           src/Jigsaw/Jigsaw.hs
+  Build-Depends:     base >= 3 && < 5
+  ghc-options:       -isrc/Jigsaw -isrc/Util
+Executable ediT2-RT
+  Main-is:           src/RT2/RT.hs
+  Build-Depends:     base >= 3 && < 5
+  ghc-options:       -isrc/RT2 -isrc/Util
+Executable ediT2-Checker
+  Main-is:           src/Util/Checker.hs
+  Build-Depends:     base >= 3 && < 5
+  ghc-options:       -isrc/Util
