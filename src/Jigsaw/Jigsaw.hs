@@ -10,7 +10,7 @@ import qualified JigsawPatternInformation as Info
 -- write the generated tree into a file
 main :: IO()
 main
-	| notPossible == [] = writeT2 Info.file ["Activities", "Groups", "Participants", "Resources"] (generate generateLevels)
+	| notPossible == [] = writeT2 Info.file ["Activity", "Group", "Participant", "Resource"] (generate generateLevels)
 		(Info.activityObjectsList, groupObjectsList, Info.participantObjectsList, Info.resourceObjectsList, [])
 	| otherwise = writeT2Err Info.file notPossible
 
@@ -35,7 +35,7 @@ generateLevels = generateActivitiesLvl : generateGroupsLvl : generateParticipant
 -- generateActivitiesLvl, generate activities level
 -- @Level -> activities level
 generateActivitiesLvl :: Level
-generateActivitiesLvl = ("Activities", [[["Initial"]], [["Expert"]], [["Jigsaw"]]]) 
+generateActivitiesLvl = ("Activity", [[["Initial"]], [["Expert"]], [["Jigsaw"]]]) 
 
 
 
@@ -44,7 +44,7 @@ generateActivitiesLvl = ("Activities", [[["Initial"]], [["Expert"]], [["Jigsaw"]
 -- generateGroupsLvl, generate groups level
 -- @Level -> groups level
 generateGroupsLvl :: Level
-generateGroupsLvl = ("Groups", createGroupsInitial : createGroupsExpert : createGroupsJigsaw : [])
+generateGroupsLvl = ("Group", createGroupsInitial : createGroupsExpert : createGroupsJigsaw : [])
 
 
 
@@ -72,7 +72,7 @@ createGroupsJigsaw = [["Group Jigsaw " ++ (show i)] | i <- [1..(length createPar
 -- //////////////////////////////////// PARTICIPANTS ////////////////////////////////////
 
 generateParticipantsLvl :: Level
-generateParticipantsLvl = ("Participants", map (\x -> map (\y -> [y]) x) (createParticipantsInitial ++ createParticipantsExpert ++ createParticipantsJigsaw))
+generateParticipantsLvl = ("Participant", map (\x -> map (\y -> [y]) x) (createParticipantsInitial ++ createParticipantsExpert ++ createParticipantsJigsaw))
 
 
 
@@ -157,7 +157,7 @@ createParticipantsJigsaw = case repartitionJigsaw of
 -- generateResourcesLvl, generate resources
 -- @Level -> the level resources
 generateResourcesLvl :: Level
-generateResourcesLvl = ("Resources", map (\x -> map (\y -> [y]) x) (createResourcesInitial ++ createResourcesExpert ++ createResourcesJigsaw))
+generateResourcesLvl = ("Resource", map (\x -> map (\y -> [y]) x) (createResourcesInitial ++ createResourcesExpert ++ createResourcesJigsaw))
 
 
 

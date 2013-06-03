@@ -6,6 +6,6 @@
 */RT
 src/Editor/Editor2
 src/Util/Checker
-Jigsaw/
+src/Jigsaw/Jigsaw
 out/
 tests/

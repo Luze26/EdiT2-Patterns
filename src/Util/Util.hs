@@ -66,6 +66,40 @@ participantsLogins ps = map (\(login,_,_,_,_,_) -> login) ps
 
 
 
+resourcesNames :: ResourceObjects -> [Resource]
+resourcesNames rs = map (\(name,_,_,_) -> name) rs
+
+
+
+-- activities objects
+activitiesObjects :: PatternObjects -> ActivityObjects
+activitiesObjects (o,_,_,_,_) = o
+
+
+-- participants objects
+groupsObjects :: PatternObjects ->GroupObjects
+groupsObjects (_,o,_,_,_) = o
+
+
+
+-- participants objects
+participantsObjects :: PatternObjects -> ParticipantObjects
+participantsObjects (_,_,o,_,_) = o
+
+
+
+-- resources objects
+resourcesObjects :: PatternObjects -> ResourceObjects
+resourcesObjects (_,_,_,o,_) = o
+
+
+
+-- roles objects
+rolesObjects :: PatternObjects -> RoleObjects
+rolesObjects (_,_,_,_,o) = o
+
+
+
 -- Helpers to create automatic list of students //////////////////////////////////////////////////////
 
 -- createList, create a list a participants for test
@@ -162,6 +196,13 @@ readTree file = do
 
 
 
+-- Functions to read .txt information file ///////////////////////////////////////////////////////////////////
+
+readObjects :: String -> (String, PatternObjects)
+readObjects firstLine = read firstLine :: (String, PatternObjects)
+
+
+
 -- Functions to read constraint
 
 readConstraints :: String -> IO [Cstr]
@@ -199,6 +240,11 @@ splitList2 list nb size = splitList2' (cycle list) nb size
 splitList2' :: [a] -> Int -> Int -> [[a]]
 splitList2' _ 0 _ = []
 splitList2' list nb size = take size list : splitList2' (drop size list) (nb-1) size
+
+
+
+possibleToList :: Possible [a] -> [a]
+possibleToList p = case p of NotPossible _ -> []; Possible list -> list
 
 
 
@@ -272,6 +318,8 @@ repartition2 nbP groups
 
 
 
+-- repartition2', cf repartition2, expect that repartition2' is used only when there is a solution and the second parameter
+-- take the difference between the number of students and the sum of groups size wanted
 repartition2' :: Int -> Int -> [(Int, Int, Int)] -> [Int]
 repartition2' _ _ [] = []
 repartition2' nbP diff ((nbG,aG,bG):groups) = size : repartition2' (nbP-size) (diff-extra) groups
