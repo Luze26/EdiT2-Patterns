@@ -5,7 +5,10 @@
 *.sh
 */RT
 src/Editor/Editor2
+src/Editor/Editor3
+src/Editor/Editor4
 src/Util/Checker
 src/Jigsaw/Jigsaw
+src/RT2/RT
 out/
 tests/

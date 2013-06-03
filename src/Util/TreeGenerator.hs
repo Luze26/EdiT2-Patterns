@@ -34,7 +34,7 @@ generate' (name, [r]:rows) lvls pid i = (Node (name, id, pid, r) subtree) : gene
 generate'' :: Level -> [Level] -> String -> Int -> ([Level], [NTree Cell])
 generate'' (name, []) lvls _ _ = ((name,[]):lvls, [])
 generate'' (name, r:rows) lvls pid i
-	| r == [] = ((name, rows):lsub, subtree)
+	| r == [] = ((name,rows):lvls, [])
 	| otherwise = (ls, (Node (name, id, pid, head r) subtree):nexttree)
 	where
 		id = pid ++ (show i)

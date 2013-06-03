@@ -1,0 +1,13 @@
+module Tree
+(Var "cellComponents",Value {args = 1, fixity = Def, priority = 9, letBound = True, traced = True})
+(Var "nbLeaf",Value {args = 1, fixity = Def, priority = 9, letBound = True, traced = True})
+(Var "node",Value {args = 1, fixity = Def, priority = 9, letBound = True, traced = True})
+(Var "showTree",Value {args = 1, fixity = Def, priority = 9, letBound = True, traced = True})
+(Var "subtrees",Value {args = 1, fixity = Def, priority = 9, letBound = True, traced = True})
+(Con Data "NTree" "Node",Value {args = 2, fixity = Def, priority = 9, letBound = True, traced = True})
+(TypeClass "Cell",TyCls (Syn 0 THelper))
+(TypeClass "CellComponents",TyCls (Syn 0 THelper))
+(TypeClass "CellFatherNumbering",TyCls (Syn 0 THelper))
+(TypeClass "CellLabel",TyCls (Syn 0 THelper))
+(TypeClass "CellNumbering",TyCls (Syn 0 THelper))
+(TypeClass "NTree",TyCls (Ty ["Node"] []))
