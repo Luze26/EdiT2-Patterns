@@ -266,15 +266,17 @@ repartition :: Int -- ^ Number to split.
 	-> Int -- ^ Size of a split wanted.
 	-> Int -- ^ Above margin tolerated.
 	-> Int -- ^ Below margin tolerated.
+	-> Bool -- ^ True, if the user prefers splits uniform, no matter if there is a huge variation with the size wanted. False if he wants the solution the closest.
 	-> Possible [Int] -- ^ Possible size repartition.
-repartition nbP n a b
-	| ok = Possible list1
+repartition nbP n a b uniform
+	| ok && (uniform || (diff1 <= 1) || (diff1 <= diff2)) = Possible list1
 	| ok2 = Possible list2
 	| otherwise = NotPossible "Can't do a good repartition" -- If it can't do a repartition, it returns a 'NotPossible' result.
 	where
 		(ok, list1) = repartitionUniform nbP n a b 0 -- It tries to do an uniform repartition with exactly the same size for each splits.
 		(ok2, list2) = repartition' nbP n a b 0 -- If there isn't any uniform repartition, it tries to create a repartion with less variations possible.
-
+		diff1 = abs $ nbP - (head list1)
+		diff2 = max (abs $ nbP - (minimum list2)) (abs $ nbP - (maximum list2))
 
 
 -- | 'repartition'', tries to create a repartion with less variations possible.

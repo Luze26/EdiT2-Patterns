@@ -213,7 +213,7 @@ repartitionInitial = repartitionInitial' createParticipantsExpert Info.themes
 repartitionInitial' :: [ExpertGroup] -> [Theme] -> [Possible [Int]]
 repartitionInitial' [] _ = []
 repartitionInitial' (g:groups) (t:themes) =
-	case repartition (length g) Info.nbPPG Info.above Info.below of
+	case repartition (length g) Info.nbPPG Info.above Info.below True of
 		NotPossible msg -> NotPossible ("Can't do a good reparition for initial group on the theme " ++ (name t)) : repartitionInitial' groups themes
 		Possible list -> Possible list : repartitionInitial' groups themes
 
@@ -237,7 +237,7 @@ repartitionInitial''' (r:rs) =
 -- @Possible [Int] -> list of size for jigsaw's group
 repartitionJigsaw :: Possible [Int]
 repartitionJigsaw =
-	case repartition (length participants) nbPPGJ upperMarginJigsaw lowerMarginJigsaw of
+	case repartition (length participants) nbPPGJ upperMarginJigsaw lowerMarginJigsaw True of
 		NotPossible _ -> NotPossible "Can't do a good reparition for jigsaw groups"
 		Possible list -> Possible list
 	where

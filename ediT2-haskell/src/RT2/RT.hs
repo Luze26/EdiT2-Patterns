@@ -6,94 +6,129 @@ import System.Environment( getArgs )
 
 
 data Info =
+	-- | 'Info', contain information needed for the pattern.
 	Info {
 		objects :: PatternObjects,
 		nbPPG :: Int,
 		above :: Int,
-		below :: Int
+		below :: Int,
+		uniform :: Bool
 	}
 
 
 
+-- | 'main', entry point. Expect a file path in argument pointing to a file containing information needed.
 main :: IO()
 main = do
 	args <- getArgs
-	text <- readFile $ head args
-	let (file, info) = readText $ lines text
-	let (lvls, patternObjects) = generateLevels info
-	writeT2 file ["Activity","Resource","Group","Role","Participant"] (generate lvls) patternObjects
+	text <- readFile $ head args -- Read the file past in argument
+	let (file, info) = readText $ lines text -- Extract information from the text. file = output file. info = information.
+	let repart = repartitionParticipant (length $ participantsObjects $ objects info) (nbPPG info) (above info) (below info) True -- Sizes repartition for groups.
+	case repart of
+		Possible _ -> do
+			let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
+			writeT2 file ["Activity","Resource","Group","Role","Participant"] (generate lvls) patternObjects -- Write a file, with the generated tree and the pattern object.
+		NotPossible _ -> writeT2Err file $ [NotPossible "Can't do a good repartiton of participants for the learning activity."]
 
 
 
--- generateLevels, generatee the levels of the tree
--- @[Level] -> levels
-generateLevels :: Info -> ([Level], PatternObjects)
+-- | 'generateLevels', generatee the levels for the tree.
+generateLevels :: Info -- ^ Information for the pattern.
+	-> ([Level], PatternObjects) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
 generateLevels info = (lvls, (activityObjects, map (\g -> (g,g)) groups, participantsObjects po, resourcesObjects po, roleObjects))
 	where
 		lvls = generateActivityLvl : (generateResourceLvl resources) : groupLvl : (generateRoleLvl $ (*) nbResources $ length groups) :
-			generateParticipantLvl participants repart nbResources : []
-		groupLvl = generateGroupLvl nbResources groups
-		resources = resourcesNames $ resourcesObjects po
-		activityObjects = [("Introduction", ""), ("Learning", "")]
-		roleObjects = [("Teacher", ""), ("Student", "")]
-		groups = createGroups $ length repart
-		repart =  repartitionParticipant (length participants) (nbPPG info) (above info) (below info)
-		participants = participantsLogins $ participantsObjects po
-		nbResources = length resources
-		po = objects info
+			generateParticipantLvl participants repart nbResources : [] -- [Level], levels.
+		groupLvl = generateGroupLvl nbResources groups -- The level for the group notion.
+		resources = resourcesNames $ resourcesObjects po -- Resources names.
+		activityObjects = [("Introduction", ""), ("Learning", "")] -- Activity object for the pattern object.
+		roleObjects = [("Teacher", ""), ("Student", "")] -- Role object for the pattern object.
+		groups = createGroups $ length repart -- Groups created for the second activity (Learning).
+		repart = possibleToList $ repartitionParticipant (length participants) (nbPPG info) (above info) (below info) (uniform info) -- Reparition of the participants, for groups in the Learning activity.
+		participants = participantsLogins $ participantsObjects po -- Participants logins.
+		nbResources = length resources -- Number of resources.
+		po = objects info -- Pattern object partially filled, given by the information file.
 
 
 
-generateActivityLvl :: Level
+-- | 'generateActivityLvl', generate the activity level.
+generateActivityLvl :: Level -- ^ The activity level.
 generateActivityLvl = ("Activity", [[["Introduction"]],[["Learning"]]])
 
 
 
-generateResourceLvl :: [Resource] -> Level
-generateResourceLvl res = ("Resource", [["Resource???"]] : (map (\r -> [r]) res) : [])
+-- | 'generateResourceLvl', generate the resource level.
+generateResourceLvl :: [Resource] -- ^ List of resources corresponding to passages.
+	-> Level -- ^ The resource's level.
+generateResourceLvl res = ("Resource", [["Resource???"]] : (map (\r -> [r]) res) : []) -- A "fake" node is needed for the first activity where there isn't any resources.
 
 
 
-generateGroupLvl :: Int -> [String] -> Level
-generateGroupLvl nb gs = ("Group", [["Group???"]] : (replicate nb $ map (\g -> [g]) gs))
+-- | 'generateGroupLvl', generate the group level.
+generateGroupLvl :: Int -- ^ Number of passages (= number of resources).
+	-> [String] -- ^ List of groups for the learning activity.
+	-> Level -- ^ The group's level.
+generateGroupLvl nb gs = ("Group", [["Group???"]] : (replicate nb $ map (\g -> [g]) gs)) -- A "fake" node is needed for the first activity where there isn't any groups.
 
 
 
-generateRoleLvl :: Int -> Level
-generateRoleLvl nbGroup = ("Role", [["Role???"]] : (replicate nbGroup [["Teacher"],["Student"]]))
+-- | 'generateRoleLvl', generate the role level.
+generateRoleLvl :: Int -- ^ Number of groups for the learning activity.
+	-> Level -- ^ The role's level.
+generateRoleLvl nbGroup = ("Role", [["Role???"]] : (replicate nbGroup [["Teacher"],["Student"]])) -- A "fake" node is needed for the first activity where there isn't any roles.
 
 
-generateParticipantLvl :: [Participant] -> [Int] -> Int -> Level
+
+-- | 'generateParticipantLvl', generate the participant level.
+generateParticipantLvl :: [Participant] -- ^ List of participants.
+	-> [Int] -- ^ Repartition of participants for the learning activity.
+	-> Int  -- ^ Number of passages (= number of resources).
+	-> Level -- ^ Participant's level.
 generateParticipantLvl participants repart nbResources = ("Participant", (map (\p -> [p]) participants) :
-	(roundRobin nbResources $ splitList participants repart))
+	(roundRobin nbResources $ splitList participants repart)) -- It creates the list for the first activity where participants are togethere. And for each passage, it turns the list of participant for each group.
 
 
 
-roundRobin :: Int -> [[Participant]] -> [[[Participant]]]
+-- | 'roundRobin', create the part of the participant's level for the learning activity.
+-- It turns the list of participants for each group, and take the first participant apart to be the "teacher".
+roundRobin :: Int -- ^ Number of time that it must turns the list (= number of passages = number of resources).
+	-> [[Participant]] -- ^ Lists of participants already splitted in groups.
+	-> [[[Participant]]] -- ^ The part of the participant's level for the learning activity.
 roundRobin 0 _ = []
 roundRobin i participants = (foldl (\acc g -> [[head g]] : [tail g] : acc) [] turned) ++ roundRobin (i-1) turned
 	where
-		turned = turn participants
+		turned = turn participants -- Groups of participants turned.
 
 
 
+-- | 'turn', put the last participant of each group in the first place.
 turn :: [[Participant]] -> [[Participant]]
 turn [] = []
 turn ((p:ps):pss) = (ps ++ [p]) : turn pss
 
 
 
-createGroups :: Int -> [String]
+-- | 'createGroups', create groups for the learning level.
+createGroups :: Int -- ^ Number of groups.
+	-> [String] -- ^ List of groups.
 createGroups nb = ["Group " ++ (show i) | i <- [1..nb]]
 
 
 
-repartitionParticipant :: Int -> Int -> Int -> Int -> [Int]
-repartitionParticipant nbP nbPPG above below = possibleToList $ repartition nbP nbPPG above below
+-- | 'repartitionParticipant', size repartition for groups of the learning level.
+repartitionParticipant :: Int -- ^ Number of participants.
+	-> Int -- ^ Number of participants per group wanted.
+	-> Int -- ^ Above margin.
+	-> Int -- ^ Below margin.
+	-> Bool -- ^ If the user prefers a uniform repartition or a closest repartition.
+	-> Possible [Int] -- ^ Possible size's repartition.
+repartitionParticipant nbP nbPPG above below uniform = repartition nbP nbPPG above below uniform
 
 
 
-readText :: [String] -> (String, Info)
-readText linees = (file, Info objects (readInt (linees !! 1)) (readInt (linees !! 2)) (readInt (linees !! 3)))
+-- | 'readText', read the information file.
+readText :: [String] -- ^ Lines of the file.
+	-> (String, Info) -- ^ (output file, pattern's information).
+readText linees = (file, Info objects (readInt (linees !! 1)) (readInt (linees !! 2)) (readInt (linees !! 3)) (read (linees !! 4) :: Bool))
 	where
 		(file, objects) = readObjects $ head linees
