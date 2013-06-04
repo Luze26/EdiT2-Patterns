@@ -3,7 +3,7 @@
 *~
 .depend*
 *.sh
-ediT2-haskell/src/RT2/RT
+ediT2-haskell/src/RT/RT
 ediT2-haskell/src/Jigsaw/Jigsaw
 ediT2-haskell/src/Constraints/Checker
 ediT2-haskell/dist/build/

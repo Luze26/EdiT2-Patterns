@@ -1,6 +1,6 @@
 module JigsawModel where
 
-import Util.Util
+import Util.Util ( Participant, Resource )
 
 -- Initial Group
 type InitialGroup = [Participant]

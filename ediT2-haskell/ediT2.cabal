@@ -17,7 +17,7 @@ Executable ediT2-Jigsaw
   
 Executable ediT2-RT
   Main-is:           RT.hs
-  Hs-Source-Dirs:    src/RT2 src
+  Hs-Source-Dirs:    src/RT src
   Other-Modules:     Util.Util, Util.Tree, Util.TreeGenerator
 
 Executable ediT2-Checker
