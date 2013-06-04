@@ -7,3 +7,5 @@ Patterns available :
   - Jigsaw
   - Reciprocal teaching
   - Editors
+
+The documentation is in dist/doc

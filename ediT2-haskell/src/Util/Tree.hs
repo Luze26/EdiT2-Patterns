@@ -1,4 +1,5 @@
-module Tree
+-- | Module containing the data structure for the tree and useful functions on tree.
+module Util.Tree
 ( 
 	CellLabel,
 	CellNumbering,
@@ -13,52 +14,52 @@ module Tree
 	nbLeaf
 ) where
 
--- name of the column, in which the cell is
+-- | Name of the column (notion), in which the cell is.
 type CellLabel = String
 
--- 11011 (e.g)
+-- | The number of the cell (differents cells can have the same number across the tree).
 type CellNumbering = String
 
--- 1101 (e.g)
+-- | The number of the father, 'null' for the root node.
 type CellFatherNumbering = String
 
--- The component identification array
+-- | The component identification array.
 type CellComponents = [String]
 
+-- | 'Cell' represents a node
 type Cell = (CellLabel,CellNumbering,CellFatherNumbering,CellComponents)
 
-data NTree a = Node a [NTree a] deriving (Eq,Ord,Show,Read)
+
+data NTree a =
+	-- | Data structure representing a tree. 'Node a' for the node and '[NTree a]' for the subtrees
+	Node a [NTree a] deriving (Eq,Ord,Show,Read)
 
 
 
--- node, return the cell
--- @NTree Cell -> the tree
--- @Cell -> the root's cell
-node :: NTree Cell -> Cell
+-- | 'node', return the cell of a 'NTree Cell'.
+node :: NTree Cell -- ^ The tree.
+	-> Cell -- ^ The root's cell of the tree.
 node (Node cell _) = cell
 
 
 
--- subtrees, return subtrees
--- @NTree Cell -> the tree
--- @[NTree Cell] -> sbtrees
-subtrees :: NTree Cell -> [NTree Cell]
+-- | 'subtrees', return subtrees of a NTree.
+subtrees :: NTree a -- ^ The tree.
+	-> [NTree a] -- ^ Subtrees of the tree.
 subtrees (Node _ strees) = strees
 
 
 
--- cellComponents, return the components
--- @Cell -> the cell
--- @CellComponents -> components
-cellComponents :: Cell -> CellComponents
+-- | 'cellComponents', return the components of a cell.
+cellComponents :: Cell -- ^ The cell.
+	-> CellComponents -- ^ components of the cell.
 cellComponents (_,_,_,components) = components
 
 
 
--- nbLeaf, return the number of leaves for the given tree
--- @NTree Cell -> the tree
--- @Int -> number of leaves for the tree
-nbLeaf :: NTree Cell -> Int
+-- | 'nbLeaf', return the number of leaves for the given tree
+nbLeaf :: (Eq a) => NTree a -- ^ The tree.
+	-> Int -- ^ Number of leaves for the tree.
 nbLeaf tree
 	| sbtrees == [] = 1
 	| otherwise = foldl (\acc x -> acc + nbLeaf x) 0 sbtrees
@@ -67,36 +68,34 @@ nbLeaf tree
 
 
 
--- showTree, convert a tree in a string in .t2 format
--- @NTree Cell -> the tree to convert
--- @String -> the tree in .t2 format
-showTree :: NTree Cell -> String
+-- | 'showTree', convert a tree in a string in .t2 format. 
+showTree :: NTree Cell -- ^ The tree to convert.
+	-> String -- ^ The tree in .t2 format.
 showTree tree = showTree' True "" tree
 
 
 
--- showTree', convert a tree in string with correct indents
--- @Bool -> if there is another Ntree after him on the same level
--- @String -> tabulations
--- @NTree Cell -> the tree to convert
--- @String -> the tree in .t2 format
-showTree' :: Bool -> String -> NTree Cell -> String
-showTree' noComma tabs (Node cell sbtrees) = tabs ++ "Node " ++ (show cell) ++ starting ++ (showSubTrees ('\t':tabs) sbtrees) ++ ending
+-- 'showTree'', cf 'showTree'.
+showTree' :: Bool -- ^ If there is another tree after him on the same level (if it's not the last subtree of the level).
+	-> String -- ^ Tabulations.
+	-> NTree Cell -- ^ The tree to convert in .t2.
+	-> String -- ^ The tree in .t2 format.
+showTree' noComma tabs (Node cell sbtrees) = tabs ++ "Node " ++ (show cell) ++ starting ++ ending
 	where
 		starting
-			| sbtrees == [] = " ["
-			| otherwise = " [\n"
+			| sbtrees == [] = " ["		-- If there is no subtrees.
+			| otherwise = " [\n" ++ showSubTrees ('\t':tabs) sbtrees	-- Otherwise, we translate each subtree in .t2 with the correct indentation.
 		ending
-			| noComma = "]"
+			| noComma = "]"		-- If it's the last subtree of the level, there is no comma.
 			| otherwise = "],\n"
 
 
 
--- showSubTrees, call showTree for each subtrees
--- @String -> tabulations
--- @[NTree Cell] -> list of subtrees
--- @String -> subtrees in format .t2
-showSubTrees :: String -> [NTree Cell] -> String
+
+-- | 'showSubTrees', call showTree for each subtrees.
+showSubTrees :: String -- ^ Tabulations.
+	-> [NTree Cell] -- ^ List of subtrees.
+	-> String -- ^ Subtrees in format .t2.
 showSubTrees _ [] = ""
 showSubTrees tabs (s:sbtrees) = showTree' noComma tabs s ++ (showSubTrees tabs sbtrees)
 	where

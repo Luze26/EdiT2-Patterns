@@ -1,6 +1,6 @@
 import Data.Char( intToDigit )
-import Util
-import TreeGenerator
+import Util.Util
+import Util.TreeGenerator
 import JigsawModel
 import qualified JigsawPatternInformation as Info
 

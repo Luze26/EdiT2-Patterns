@@ -1,18 +1,26 @@
 Name:                ediT2-haskell
-Version:             0.5
+Version:             0.8
 Description:         Pattern generator
 Author:              Yann Uzel
 Build-Type:          Simple
 Cabal-Version:       >=1.2
+
+Library
+  Build-Depends:     base >= 3 && < 5
+  Hs-Source-Dirs:    src/
+  Exposed-Modules:   Util.Util, Util.Constraints, Util.Tree, Util.TreeGenerator
+
 Executable ediT2-Jigsaw
-  Main-is:           src/Jigsaw/Jigsaw.hs
-  Build-Depends:     base >= 3 && < 5
-  ghc-options:       -isrc/Jigsaw -isrc/Util
+  Main-is:           Jigsaw.hs
+  Hs-Source-Dirs:    src/Jigsaw src
+  Other-Modules:     Util.Util, Util.Tree, Util.TreeGenerator
+  
 Executable ediT2-RT
-  Main-is:           src/RT2/RT.hs
-  Build-Depends:     base >= 3 && < 5
-  ghc-options:       -isrc/RT2 -isrc/Util
+  Main-is:           RT.hs
+  Hs-Source-Dirs:    src/RT2 src
+  Other-Modules:     Util.Util, Util.Tree, Util.TreeGenerator
+
 Executable ediT2-Checker
-  Main-is:           src/Util/Checker.hs
-  Build-Depends:     base >= 3 && < 5
-  ghc-options:       -isrc/Util
+  Main-is:           Checker.hs
+  Hs-Source-Dirs:    src/Constraint src
+  Other-Modules:     Util.Util, Util.Tree, Util.Constraints

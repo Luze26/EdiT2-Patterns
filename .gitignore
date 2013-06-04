@@ -3,9 +3,11 @@
 *~
 .depend*
 *.sh
-*/RT
-src/dist/build
-src/dist/package.conf.inplace
-src/dist/setup-config
+ediT2-haskell/src/RT2/RT
+ediT2-haskell/src/Jigsaw/Jigsaw
+ediT2-haskell/src/Constraints/Checker
+ediT2-haskell/dist/build/
+ediT2-haskell/dist/package.conf.inplace
+ediT2-haskell/dist/setup-config
 out/
 tests/
