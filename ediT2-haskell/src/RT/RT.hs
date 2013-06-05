@@ -27,7 +27,7 @@ main = do
 		Possible _ -> do
 			let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
 			writeT2 file ["Activity","Resource","Group","Role","Participant"] (generate lvls) patternObjects -- Write a file, with the generated tree and the pattern object.
-		NotPossible _ -> writeT2Err file $ [NotPossible "Can't do a good repartiton of participants for the learning activity."]
+		NotPossible _ -> writeT2Err file [NotPossible "Can't do a good repartiton of participants for the learning activity."]
 
 
 
