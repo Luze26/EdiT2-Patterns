@@ -1,3 +1,2 @@
 "/home/zang/Dev/Haskell/Stage/out/simu.t2"
-Info { objects = ([],[],[("e1","","","","",""), ("e2","","","","",""), ("e3","","","","",""), ("e4","","","","",""), ("e5","","","","","")],[("r1","","",""),("r2","","",""),("r3","","",""),("r4","","","")],[("role1",""),("role2","")])),
-roles = [Role{ name = "role1", resources = ["r1", "r2"], nbActor = 2, above = 0, below = 0 }, Role{ name = "role2", resources = ["r3", "r4"], nbActor = 1, above = 0, below = 0 }]}
+Info { objects = ([],[],[("e1","","","","",""), ("e2","","","","",""), ("e3","","","","",""), ("e4","","","","",""), ("e5","","","","",""), ("e6","","","","","")],[("r1","","",""),("r2","","",""),("r3","","",""),("r4","","","")],[("role1",""),("role2","")]), roles = [RoleSimu{ name = "role1", resources = ["r1", "r2"], nbActor = 2, above = 0, below = 0 }, RoleSimu{ name = "role2", resources = ["r3", "r4"], nbActor = 1, above = 0, below = 0 }], resourcesProblem = ["r1","r2"]}

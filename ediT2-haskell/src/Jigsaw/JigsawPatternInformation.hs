@@ -3,7 +3,7 @@ module JigsawPatternInformation where
 import JigsawModel 
 import Util.Util 
  
-themes = [Theme{name="t1", resources = ["r1"], nbExpert=1, lowerMargin = 0, upperMargin = 0, nbResources = 1},Theme{name="t2", resources = ["r5"], nbExpert=1, lowerMargin = 0, upperMargin = 0, nbResources = 1}] 
+themes = [Theme{name="t1", resources = ["r1"], nbExpert=2, lowerMargin = 0, upperMargin = 0, nbResources = 1},Theme{name="t2", resources = ["r5"], nbExpert=1, lowerMargin = 0, upperMargin = 1, nbResources = 1}] 
  
 nbPPG :: Int 
 nbPPG = 1

@@ -1,5 +1,4 @@
 import Util.Util
-import Util.Tree
 import Util.TreeGenerator
 import System.Environment( getArgs )
 

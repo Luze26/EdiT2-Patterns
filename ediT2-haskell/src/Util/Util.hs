@@ -73,6 +73,18 @@ readInt n = read n
 
 
 
+-- addAll, merge elements of 2 list
+-- @[[a]] -> list 1
+-- @[[a]] -> list 2
+-- @[[a]] -> merged list
+addAll :: [[a]] -> [[a]] -> [[a]]
+addAll _ [] = []
+addAll [] _ = []
+addAll (a:acc) (t:ts) = (a ++ t) : addAll acc ts
+
+
+
+
 -- | 'participantsLogins', return the list of participants logins.
 participantsLogins :: ParticipantObjects -- ^ Participants objects.
 	-> [Participant] -- ^ Participants logins.
@@ -84,6 +96,13 @@ participantsLogins ps = map (\(login,_,_,_,_,_) -> login) ps
 resourcesNames :: ResourceObjects -- ^ Resources objects.
 	-> [Resource] -- ^ Resources names.
 resourcesNames rs = map (\(name,_,_,_) -> name) rs
+
+
+
+-- | 'rolesNames', returns the list of roles names.
+rolesNames :: RoleObjects -- ^ Roles objects.
+	-> [Role] -- ^ Roles names.
+rolesNames rs = map (\(name,_) -> name) rs
 
 
 
@@ -275,8 +294,9 @@ repartition nbP n a b uniform
 	where
 		(ok, list1) = repartitionUniform nbP n a b 0 -- It tries to do an uniform repartition with exactly the same size for each splits.
 		(ok2, list2) = repartition' nbP n a b 0 -- If there isn't any uniform repartition, it tries to create a repartion with less variations possible.
-		diff1 = abs $ nbP - (head list1)
-		diff2 = max (abs $ nbP - (minimum list2)) (abs $ nbP - (maximum list2))
+		diff1 = abs $ nbP - (head list1) -- The difference between the preferred size and the size possible for an uniform repartion.
+		diff2 = max (abs $ nbP - (minimum list2)) (abs $ nbP - (maximum list2)) -- The difference between the preferred size and the farthest size.
+
 
 
 -- | 'repartition'', tries to create a repartion with less variations possible.
@@ -297,36 +317,59 @@ repartition' nbP n a b m
 
 
 
--- | 'repartitionUniform', repartition with the same size for each group, and with the closest possible size of the size wanted.
-repartitionUniform :: Int -- ^ Number of participants to split.
-	-> Int -- ^ Number of participants per groups wanted.
+-- | 'repartitionUniform', repartition with the same size for each split, and with the closest possible size of the size wanted.
+repartitionUniform :: Int -- ^ Number to split.
+	-> Int -- ^ Size of a split wanted.
 	-> Int -- ^ Above margin tolerated.
 	-> Int -- ^ Below margin tolerated.
 	-> Int -- ^ Variation.
 	-> (Bool, [Int]) -- ^ If a repartition is possible then it returns (True, repartition) else (False, []).
 repartitionUniform nbP n a b m
-	| m<=a && mod nbP nb == 0 = (True, replicate (div nbP nb) nb)
-	| m<=b && nb>1 && mod nbP nb1 == 0 = (True, replicate (div nbP nb1) nb1)
-	| m<a || m<b = repartitionUniform nbP n a b (m+1)
-	| otherwise = (False, [])
+	| m<=a && mod nbP nb == 0 = (True, replicate (div nbP nb) nb) -- If the variation is still tolerated and we can split evenly.
+	| m<=b && nb>1 && mod nbP nb1 == 0 = (True, replicate (div nbP nb1) nb1) -- If the variation is still tolerated and we can split evenly.
+	| m<a || m<b = repartitionUniform nbP n a b (m+1) -- If the variation can increased, we continue.
+	| otherwise = (False, []) -- No solution possible.
 	where
-		nb = n+m
-		nb1 = n-m
+		nb = n+m -- Size of a split (size wanted + positive variation).
+		nb1 = n-m -- Size of a split (size wanted + negative variation).
+
+
+
+-- 'repartition2Multiple', give a list of size depending of split information, for the best repartition. The list of plits can be done multiple of times.
+repartition2Multiple :: Int -- ^ Number to split.
+	-> [(Int, Int, Int)] -- ^ List of splits with for each split : the size wanted, the above margin and the below margin.
+	-> Possible [[Int]] -- ^ Possible size repartition, list of list of splits.
+repartition2Multiple nbP splits =
+	case repartition nbP sumSize sumAbove sumBelow True of	-- If there is a repartition possible for the whole split, then there is a repartition possible for a list of splits.
+		Possible splits' -> Possible $ map (\split -> possibleToList $ repartition2 split splits) splits' -- For each each big split, we make the subsplits.
+		NotPossible _ -> NotPossible "Not possible to do a good repartition"
+	where
+		(sumSize, sumAbove, sumBelow) = sumTriplets splits	-- The big splits.
 
 
 
 -- 'repartition2', give a list of size depending of split information, for the best repartition.
 repartition2 :: Int -- ^ Number to split.
-	-> [(Int, Int, Int)] -- ^ List of splits with for each split : the size wanted, the above margin and the below margin.
+	-> [(Int, Int, Int)] -- ^ List of splits with for each split : the size wanted, the above margin and the below margin. Each split is done once.
 	-> Possible [Int] -- ^ Possible size repartition.
-repartition2 nbP groups
-	| sumSize == nbP = Possible sizeGroups
-	| (diffSum > 0 && diffSum <= sumAbove) || (diffSum < 0 && diffSum >= (-sumBelow)) = Possible $ repartition2' nbP diffSum groups
+repartition2 nbP splits
+	| sumSize == nbP = Possible sizeSplits
+	| (diffSum > 0 && diffSum <= sumAbove) || (diffSum < 0 && diffSum >= (-sumBelow)) = Possible $ repartition2' nbP diffSum splits
 	| otherwise = NotPossible "repartition not possible"
 	where
-		sizeGroups = map (\(nb,_,_) -> nb) groups
-		(sumSize, sumAbove, sumBelow) = foldl (\(s,a,b) (s',a',b') -> (s+s',a+a',b+b')) (0,0,0) groups
+		sizeSplits = map (\(nb,_,_) -> nb) splits
+		(sumSize, sumAbove, sumBelow) = sumTriplets splits
 		diffSum = nbP - sumSize
+
+
+
+-- | 'sumTriplets', sum a list of triplet. 'sumTriplet' [(1,2,4),(-1,0,5)] => (0,2,9). 
+sumTriplets :: (Num a) => [(a,a,a)] -- ^ Triplets.
+	-> (a,a,a) -- ^ The sum.
+sumTriplets [] = (0,0,0)
+sumTriplets ((x,y,z):ts) = (x+x', y+y', z+z')
+	where
+		(x',y',z') = sumTriplets ts
 
 
 
@@ -337,7 +380,7 @@ repartition2' :: Int -- ^ .
 	-> [(Int, Int, Int)] -- ^ .
 	-> [Int] -- ^ .
 repartition2' _ _ [] = []
-repartition2' nbP diff ((nbG,aG,bG):groups) = size : repartition2' (nbP-size) (diff-extra) groups
+repartition2' nbP diff ((nbG,aG,bG):splits) = size : repartition2' (nbP-size) (diff-extra) splits
 	where
 		size = nbG + extra
 		extra

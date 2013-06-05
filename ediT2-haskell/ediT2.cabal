@@ -20,6 +20,11 @@ Executable ediT2-RT
   Hs-Source-Dirs:    src/RT src
   Other-Modules:     Util.Util, Util.Tree, Util.TreeGenerator
 
+Executable ediT2-Simu
+  Main-is:           Simulation.hs
+  Hs-Source-Dirs:    src/Simulation src
+  Other-Modules:     Util.Util, Util.Tree, Util.TreeGenerator
+
 Executable ediT2-Checker
   Main-is:           Checker.hs
   Hs-Source-Dirs:    src/Constraint src

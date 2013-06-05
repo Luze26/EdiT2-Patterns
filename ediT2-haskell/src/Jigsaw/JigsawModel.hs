@@ -1,23 +1,24 @@
+-- | Data strcuture used by Jigsaw.hs
 module JigsawModel where
 
 import Util.Util ( Participant, Resource )
 
--- Initial Group
+-- | Initial Group
 type InitialGroup = [Participant]
 
--- Expert Group
+-- | Expert Group
 type ExpertGroup = [Participant]
 
--- Jigsaw Group
+-- | Jigsaw Group
 type JigsawGroup = [Participant]
 
--- Theme
 data Theme =
+	-- | 'Theme', a theme in jigsaw's context.
 	Theme {
-		name :: String,				-- name of the theme
-		resources :: [Resource],	-- resources of the theme
-		nbExpert :: Int,			-- number of expert for the theme needed in a Jigsaw group
-		lowerMargin :: Int,			-- number of additionnal experts allowed in a Jigsaw group
-		upperMargin :: Int,			-- number of less experts allowed in a Jigsaw group
-		nbResources :: Int			-- number of resources of this theme in an initial group
-	} deriving (Show)
+		name :: String,				-- ^ Name of the theme.
+		resources :: [Resource],	-- ^ Resources of the theme.
+		nbExpert :: Int,			-- ^ Number of expert for the theme needed in a Jigsaw group.
+		lowerMargin :: Int,			-- ^ Number of additionnal experts allowed in a Jigsaw group.
+		upperMargin :: Int,			-- ^ Number of less experts allowed in a Jigsaw group.
+		nbResources :: Int			-- ^ Number of resources of this theme in an initial group.
+	}

@@ -109,16 +109,6 @@ createParticipantsExpert = foldl (\acc x -> addAll acc x) (replicate nbThemes []
 
 
 
--- addAll, merge on elements of 2 list
--- @[[Participant]] -> list 1
--- @[[Participant]] -> list 2
--- @[[Participant]] -> merged list
-addAll :: [[Participant]] -> [[Participant]] -> [[Participant]]
-addAll [] _ = []
-addAll (a:acc) (t:ts) = (a ++ t) : addAll acc ts
-
-
-
 -- createParticipantsExpert', split jigsaw groups per themes
 -- @[JigsawGroup] -> repartition for jigsaw groups
 -- @[[[Participant]]] -> participants splited per jigsaw groups and per themes
