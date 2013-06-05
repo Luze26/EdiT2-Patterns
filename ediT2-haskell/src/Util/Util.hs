@@ -223,16 +223,6 @@ readTree file = do
 	return (read $ concat $ stripFooter $ lines $ stripHeader content)
 
 
-
--- Functions to read .txt information file ///////////////////////////////////////////////////////////////////
-
--- | 'readObjects', read informations from .txt information file.
-readObjects :: String -- ^ File path to the information file.
-	-> (String, PatternObjects) -- ^ (file path for output, pattern objects).
-readObjects firstLine = read firstLine :: (String, PatternObjects)
-
-
-
 -- Functions to read constraint
 
 -- | 'readConstraints', read constraints stored in a file

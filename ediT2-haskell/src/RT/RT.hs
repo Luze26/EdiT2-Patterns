@@ -12,7 +12,7 @@ data Info =
 		above :: Int, -- ^ Above margin.
 		below :: Int, -- ^ Below margin.
 		uniform :: Bool -- ^ Uniform repartition over closest one, if True.
-	}
+	} deriving (Read)
 
 
 
@@ -128,6 +128,4 @@ repartitionParticipant nbP nbPPG above below uniform = repartition nbP nbPPG abo
 -- | 'readText', read the information file.
 readText :: [String] -- ^ Lines of the file.
 	-> (String, Info) -- ^ (output file, pattern's information).
-readText linees = (file, Info objects (readInt (linees !! 1)) (readInt (linees !! 2)) (readInt (linees !! 3)) (read (linees !! 4) :: Bool))
-	where
-		(file, objects) = readObjects $ head linees
+readText linees = (read $ head linees, read (linees !! 1) :: Info)
