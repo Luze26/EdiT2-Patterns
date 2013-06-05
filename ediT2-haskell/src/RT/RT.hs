@@ -21,7 +21,7 @@ main :: IO()
 main = do
 	args <- getArgs
 	text <- readFile $ head args -- Read the file past in argument
-	let (file, info) = readText $ lines text -- Extract information from the text. file = output file. info = information.
+	let (file, info) = readText text (\x -> read x :: Info) -- Extract information from the text. file = output file. info = information.
 	let repart = repartitionParticipant (length $ participantsObjects $ objects info) (nbPPG info) (above info) (below info) True -- Sizes repartition for groups.
 	case repart of
 		Possible _ -> do
@@ -34,19 +34,19 @@ main = do
 -- | 'generateLevels', generatee the levels for the tree.
 generateLevels :: Info -- ^ Information for the pattern.
 	-> ([Level], PatternObjects) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
-generateLevels info = (lvls, (activityObjects, map (\g -> (g,g)) groups, participantsObjects po, resourcesObjects po, roleObjects))
+generateLevels info = (lvls, (activityObjects, map (\g -> (g,g)) groups, partObj, resObj, roleObjects))
 	where
 		lvls = generateActivityLvl : (generateResourceLvl resources) : groupLvl : (generateRoleLvl $ (*) nbResources $ length groups) :
 			generateParticipantLvl participants repart nbResources : [] -- [Level], levels.
 		groupLvl = generateGroupLvl nbResources groups -- The level for the group notion.
-		resources = resourcesNames $ resourcesObjects po -- Resources names.
+		resources = resourcesNames resObj -- Resources names.
 		activityObjects = [("Introduction", ""), ("Learning", "")] -- Activity object for the pattern object.
 		roleObjects = [("Teacher", ""), ("Student", "")] -- Role object for the pattern object.
 		groups = createGroups $ length repart -- Groups created for the second activity (Learning).
 		repart = possibleToList $ repartitionParticipant (length participants) (nbPPG info) (above info) (below info) (uniform info) -- Reparition of the participants, for groups in the Learning activity.
-		participants = participantsLogins $ participantsObjects po -- Participants logins.
+		participants = participantsLogins partObj -- Participants logins.
 		nbResources = length resources -- Number of resources.
-		po = objects info -- Pattern object partially filled, given by the information file.
+		(_,_,partObj,resObj,_) = objects info -- Pattern object partially filled, given by the information file.
 
 
 
@@ -122,10 +122,3 @@ repartitionParticipant :: Int -- ^ Number of participants.
 	-> Bool -- ^ If the user prefers a uniform repartition or a closest repartition.
 	-> Possible [Int] -- ^ Possible size's repartition.
 repartitionParticipant nbP nbPPG above below uniform = repartition nbP nbPPG above below uniform
-
-
-
--- | 'readText', read the information file.
-readText :: [String] -- ^ Lines of the file.
-	-> (String, Info) -- ^ (output file, pattern's information).
-readText linees = (read $ head linees, read (linees !! 1) :: Info)

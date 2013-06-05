@@ -1,7 +1,7 @@
 -- | Data strcuture used by Jigsaw.hs
 module JigsawModel where
 
-import Util.Util ( Participant, Resource )
+import Util.Util ( Participant, Resource, PatternObjects )
 
 -- | Initial Group
 type InitialGroup = [Participant]
@@ -21,4 +21,16 @@ data Theme =
 		lowerMargin :: Int,			-- ^ Number of additionnal experts allowed in a Jigsaw group.
 		upperMargin :: Int,			-- ^ Number of less experts allowed in a Jigsaw group.
 		nbResources :: Int			-- ^ Number of resources of this theme in an initial group.
-	}
+	} deriving (Read)
+
+
+
+data Info =
+	-- | 'Info', information on the pattern.
+	Info {
+		objects :: PatternObjects, -- ^ Pattern objects.
+		themes :: [Theme], -- ^ Themes.
+		nbPPG :: Int, -- ^ Number of participants per groups.
+		above :: Int, -- ^ Above margin.
+		below :: Int -- ^ Below margin.
+	} deriving (Read)

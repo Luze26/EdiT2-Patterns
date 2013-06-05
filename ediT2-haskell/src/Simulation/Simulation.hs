@@ -10,19 +10,12 @@ main :: IO()
 main = do
 	args <- getArgs
 	text <- readFile $ head args -- Read the file past in argument
-	let (file, info) = readText $ lines text -- Extract information from the text. file = output file. info = information.
+	let (file, info) = U.readText text (\x -> read x :: Info) -- Extract information from the text. file = output file. info = information.
 	let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
 	let repart = repartitionGroups (length $ U.participantsObjects $ objects info) $ roles info -- Repartition by groups and roles for the simulation group activity.
 	case repart of
 		U.Possible _ -> U.writeT2 file ["Activity","Group","Role","Participant","Resource"] (generate lvls) patternObjects
 		U.NotPossible _ -> U.writeT2Err file [U.NotPossible "Can't do a good repartition in groups."]
-
-
-
--- | 'readText', read the information file.
-readText :: [String] -- ^ Lines of the file.
-	-> (String, Info) -- ^ (output file, pattern's information).
-readText linees = (read $ head linees, read (linees !! 1) :: Info)
 
 
 
@@ -34,12 +27,12 @@ generateLevels info = (lvls, patternObject)
 		lvls = generateActivityLvl : generateGroupLvl groups : generateRoleLvl nbGroups rolesNames : generateParticipantLvl participants repart : []  -- Levels.
 		groups = createGroups nbGroups -- Groups for the simulation group activity.
 		nbGroups = length repart -- Number of groups for the simulation group activity.
-		rolesNames = U.rolesNames $ U.rolesObjects po -- Names of roles.
-		repart = U.possibleToList $ repartitionGroups (length $ U.participantsObjects po) $ roles info -- Repartition by groups and roles for the simulation group activity.
-		patternObject = (activityObject, map (\g -> (g,"")) groups, U.participantsObjects po, U.resourcesObjects po, U.rolesObjects po) -- pattern object resulting of the generation.
+		rolesNames = U.rolesNames rolObj -- Names of roles.
+		repart = U.possibleToList $ repartitionGroups (length partObj) $ roles info -- Repartition by groups and roles for the simulation group activity.
+		patternObject = (activityObject, map (\g -> (g,"")) groups, partObj, resObj, rolObj) -- pattern object resulting of the generation.
 		activityObject = [("Introduction",""),("Roles",""),("Groups simulation",""),("Simulation",""),("Share","")]
-		participants = U.participantsLogins $ U.participantsObjects po -- Participants names.
-		po = objects info -- Pattern object given in information.
+		participants = U.participantsLogins partObj -- Participants names.
+		(_,_,partObj,resObj,rolObj) = objects info -- Pattern object given in information.
 
 
 

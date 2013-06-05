@@ -84,6 +84,15 @@ addAll (a:acc) (t:ts) = (a ++ t) : addAll acc ts
 
 
 
+-- | 'readText', read the information file.
+readText :: String -- ^ Text of the information file.
+	-> (String -> a) -- ^ Function to convert the second line in a data containing information for the pattern
+	-> (String, a) -- ^ (output file, pattern's information).
+readText text reader = (read $ head linees, reader (linees !! 1))
+	where
+		linees = lines text
+
+
 
 -- | 'participantsLogins', return the list of participants logins.
 participantsLogins :: ParticipantObjects -- ^ Participants objects.
