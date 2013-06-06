@@ -1,3 +1,10 @@
+-- | Module to verify constraints on .t2 file.
+module Constraint.Checker
+(
+	run
+) where
+
+
 import Util.Tree
 import Util.Util ( readTree, readConstraints )
 import Util.Constraints
@@ -5,19 +12,14 @@ import System.Environment( getArgs )
 import Data.List( intersect )
 
 
+
 -- Checker, entry point
-main :: IO()
-main = do
-	args <- getArgs
-	start args
-
-
-
-start :: [String] -> IO()
-start (output:input:cstrs:_) = do
+run :: [String] -> IO()
+run (output:input:cstrs:_) = do
 		tree <- readTree input
 		constraints <- readConstraints cstrs
 		writeFile output $ check tree constraints
+run _ = putStrLn "Not enough arguments for constraint.\nUsage: ediT2-haskell Constraint <output file> <.t2 file> <constraints file>"
 
 
 

@@ -1,15 +1,20 @@
+-- | Module to generate .t2 file for the pattern Jigsaw.
+module Jigsaw.Jigsaw (
+	run
+) where
+
+
 import Util.Util
 import Util.TreeGenerator
-import System.Environment( getArgs )
-import qualified JigsawModel as M
+import qualified Jigsaw.JigsawModel as M
 
 
 
--- | 'main', entry point. Expect a file path in argument pointing to a file containing information needed.
-main :: IO()
-main = do
-	args <- getArgs
-	text <- readFile $ head args -- Read the file past in argument
+-- | 'run', entry point. Expect a file path in argument pointing to a file containing information needed.
+run :: [String] -> IO ()
+run [] = putStrLn "Not enough arguments for jigsaw.\nUsage: ediT2-haskell Jigsaw <information file>"
+run (fileInfo:_) = do
+	text <- readFile fileInfo -- Read the file past in argument
 	let (file, info) = readText text (\x -> read x :: M.Info) -- Extract information from the text. file = output file. info = information.
 	let noPoss = notPossible $ repartitionJigsaw (participantsList info) (M.themes info) : repartitionInitial info
 	if noPoss == []

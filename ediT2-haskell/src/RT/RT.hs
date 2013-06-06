@@ -1,6 +1,12 @@
+-- | Module to generate .t2 file for the pattern Reciprocal Teaching.
+module RT.RT
+(
+	run
+) where
+
+
 import Util.Util
 import Util.TreeGenerator
-import System.Environment( getArgs )
 
 
 
@@ -8,7 +14,7 @@ data Info =
 	-- | 'Info', contain information needed for the pattern.
 	Info {
 		objects :: PatternObjects, -- ^ Pattern's objects.
-		nbPPG :: Int, -- ^ Number of participants pr group preferred.
+		nbPPG :: Int, -- ^ Number of participants per group preferred.
 		above :: Int, -- ^ Above margin.
 		below :: Int, -- ^ Below margin.
 		uniform :: Bool -- ^ Uniform repartition over closest one, if True.
@@ -16,11 +22,11 @@ data Info =
 
 
 
--- | 'main', entry point. Expect a file path in argument pointing to a file containing information needed.
-main :: IO()
-main = do
-	args <- getArgs
-	text <- readFile $ head args -- Read the file past in argument
+-- | 'run', entry point. Expect a file path in argument pointing to a file containing information needed.
+run :: [String] -> IO ()
+run [] = putStrLn "Not enough arguments for reciprocal teaching.\nUsage: ediT2-haskell RT <information file>"
+run (fileInfo:_) = do
+	text <- readFile fileInfo -- Read the file past in argument
 	let (file, info) = readText text (\x -> read x :: Info) -- Extract information from the text. file = output file. info = information.
 	let repart = repartitionParticipant (length $ participantsObjects $ objects info) (nbPPG info) (above info) (below info) True -- Sizes repartition for groups.
 	case repart of

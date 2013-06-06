@@ -5,27 +5,9 @@ Author:              Yann Uzel
 Build-Type:          Simple
 Cabal-Version:       >=1.2
 
-Library
+Executable ediT2-haskell
   Build-Depends:     base >= 3 && < 5
-  Hs-Source-Dirs:    src/
-  Exposed-Modules:   Util.Util, Util.Constraints, Util.Tree, Util.TreeGenerator
-
-Executable ediT2-Jigsaw
-  Main-is:           Jigsaw.hs
-  Hs-Source-Dirs:    src/Jigsaw src
-  Other-Modules:     Util.Util, Util.Tree, Util.TreeGenerator
-  
-Executable ediT2-RT
-  Main-is:           RT.hs
-  Hs-Source-Dirs:    src/RT src
-  Other-Modules:     Util.Util, Util.Tree, Util.TreeGenerator
-
-Executable ediT2-Simu
-  Main-is:           Simulation.hs
-  Hs-Source-Dirs:    src/Simulation src
-  Other-Modules:     Util.Util, Util.Tree, Util.TreeGenerator
-
-Executable ediT2-Checker
-  Main-is:           Checker.hs
-  Hs-Source-Dirs:    src/Constraint src
-  Other-Modules:     Util.Util, Util.Tree, Util.Constraints
+  Main-is:           ediT2-haskell.hs
+  Hs-Source-Dirs:    src
+  Other-Modules:     RT.RT
+  ghc-options:       -XDoAndIfThenElse

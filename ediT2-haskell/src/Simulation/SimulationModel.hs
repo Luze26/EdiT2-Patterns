@@ -1,4 +1,5 @@
-module SimulationModel where
+module Simulation.SimulationModel where
+
 
 import Util.Util ( PatternObjects, Role, Resource )
 
