@@ -61,7 +61,7 @@ cellComponents (_,_,_,components) = components
 nbLeaf :: (Eq a) => NTree a -- ^ The tree.
 	-> Int -- ^ Number of leaves for the tree.
 nbLeaf tree
-	| sbtrees == [] = 1
+	| null sbtrees = 1
 	| otherwise = foldl (\acc x -> acc + nbLeaf x) 0 sbtrees
 	where
 		sbtrees = subtrees tree
@@ -71,7 +71,7 @@ nbLeaf tree
 -- | 'showTree', convert a tree in a string in .t2 format. 
 showTree :: NTree Cell -- ^ The tree to convert.
 	-> String -- ^ The tree in .t2 format.
-showTree tree = showTree' True "" tree
+showTree = showTree' True ""
 
 
 
@@ -80,10 +80,10 @@ showTree' :: Bool -- ^ If there is another tree after him on the same level (if 
 	-> String -- ^ Tabulations.
 	-> NTree Cell -- ^ The tree to convert in .t2.
 	-> String -- ^ The tree in .t2 format.
-showTree' noComma tabs (Node cell sbtrees) = tabs ++ "Node " ++ (show cell) ++ starting ++ ending
+showTree' noComma tabs (Node cell sbtrees) = tabs ++ "Node " ++ show cell ++ starting ++ ending
 	where
 		starting
-			| sbtrees == [] = " ["		-- If there is no subtrees.
+			| null sbtrees = " ["		-- If there is no subtrees.
 			| otherwise = " [\n" ++ showSubTrees ('\t':tabs) sbtrees	-- Otherwise, we translate each subtree in .t2 with the correct indentation.
 		ending
 			| noComma = "]"		-- If it's the last subtree of the level, there is no comma.
@@ -97,6 +97,6 @@ showSubTrees :: String -- ^ Tabulations.
 	-> [NTree Cell] -- ^ List of subtrees.
 	-> String -- ^ Subtrees in format .t2.
 showSubTrees _ [] = ""
-showSubTrees tabs (s:sbtrees) = showTree' noComma tabs s ++ (showSubTrees tabs sbtrees)
+showSubTrees tabs (s:sbtrees) = showTree' noComma tabs s ++ showSubTrees tabs sbtrees
 	where
-		noComma = sbtrees == []
+		noComma = null sbtrees

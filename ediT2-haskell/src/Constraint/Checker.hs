@@ -28,7 +28,7 @@ check :: NTree Cell -- ^ The tree.
 	-> [Cstr] -- ^ Constraints to check.
 	-> String -- ^ Results.
 check _ [] = "" -- If there is no constraints.
-check tree (c:cstrs) = (show $ checkConstraint tree c) ++ "\n" ++ check tree cstrs 
+check tree (c:cstrs) = show  (checkConstraint tree c) ++ "\n" ++ check tree cstrs 
 
 
 
@@ -52,8 +52,8 @@ match :: Identificator -- ^ The identificator.
 	-> NTree Cell -- ^ The tree.
 	-> Bool -- ^ 'True', if the cell at the root of the tree matchs the identifcator. 'False', otherwise.
 match (Label l) (Node (label,_,_,_) _) = l == label
-match (Content c) (Node (_,_,_,content) _) = c == (concat content)
-match (Identificator l c) (Node (label,_,_,content) _) = c == (concat content) && l == label
+match (Content c) (Node (_,_,_,content) _) = c == concat content
+match (Identificator l c) (Node (label,_,_,content) _) = c == concat content && l == label
 
 
 
@@ -62,8 +62,8 @@ lookFor :: NTree Cell -- ^ The tree.
 	-> (NTree Cell -> Bool) -- ^ Function determining if we must keep a subtree.
 	-> [NTree Cell] -- ^ Subtrees matched by the function.
 lookFor node@(Node _ sbtrees) match'
-	| match' node  = node : foldl (\acc x -> acc ++ (lookFor x match')) [] sbtrees
-	| otherwise = foldl (\acc x -> acc ++ (lookFor x match')) [] sbtrees
+	| match' node  = node : foldl (\acc x -> acc ++ lookFor x match') [] sbtrees
+	| otherwise = foldl (\acc x -> acc ++ lookFor x match') [] sbtrees
 
 
 
@@ -72,8 +72,8 @@ notContainedId :: Identificators -- ^ Identificators.
 	-> NTree Cell -- ^ The tree.
 	-> Identificators -- ^ Identificators not matched.
 notContainedId ids tree
-	| idLeft == [] = [] -- If there is no more identificators not matched, we return an empty list.
-	| otherwise = foldl (intersect) idLeft (map (notContainedId idLeft) (subtrees tree)) -- Return the list of identificators not matched by the tree and its subtrees.
+	| null idLeft = [] -- If there is no more identificators not matched, we return an empty list.
+	| otherwise = foldl intersect idLeft (map (notContainedId idLeft) (subtrees tree)) -- Return the list of identificators not matched by the tree and its subtrees.
 	where
 		idLeft = notContainedId' tree ids -- Identificators not matched by the root node of the tree.
 
@@ -96,7 +96,7 @@ checkUnder :: Identificators -- ^ Identificators, matching items that must be in
 	-> Bool -- ^ 'True', if all the items matched by the identificators are in all the subtrees.
 checkUnder _ [] = True
 checkUnder itemss (t:trees)
-	| notContainedId itemss t == [] = checkUnder itemss trees
+	| null $ notContainedId itemss t = checkUnder itemss trees
 	| otherwise = False
 
 
@@ -107,7 +107,7 @@ checkUnder' :: Identificators -- ^ Identificators, matching items.
 	-> Bool -- ^ 'True', if all the items matched by the identificators are in a subtree or none of them. 'False', otherwise.
 checkUnder' _ [] = True
 checkUnder' itemss (t:trees)
-	| badId == itemss || badId == [] = checkUnder' itemss trees
+	| badId == itemss || null badId = checkUnder' itemss trees
 	| otherwise = False
 	where
 		badId = notContainedId itemss t

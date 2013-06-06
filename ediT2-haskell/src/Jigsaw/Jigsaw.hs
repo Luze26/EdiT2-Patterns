@@ -17,7 +17,7 @@ run (fileInfo:_) = do
 	text <- readFile fileInfo -- Read the file past in argument
 	let (file, info) = readText text (\x -> read x :: M.Info) -- Extract information from the text. file = output file. info = information.
 	let noPoss = notPossible $ repartitionJigsaw (participantsList info) (M.themes info) : repartitionInitial info
-	if noPoss == []
+	if null noPoss
 		then do let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
 			writeT2 file ["Activity","Resource","Group","Role","Participant"] (generate lvls) patternObjects -- Write a fil
 		else writeT2Err file noPoss
@@ -27,7 +27,7 @@ run (fileInfo:_) = do
 -- | 'notPossible', return the list of not possible actions.
 notPossible :: [Possible a] -- ^ Possible actions.
 	-> [Possible String] -- ^ Not possible actions.
-notPossible actions = foldl (\acc x -> case x of NotPossible msg -> NotPossible msg : acc; Possible _ -> acc) [] actions
+notPossible = foldl (\acc x -> case x of NotPossible msg -> NotPossible msg : acc; Possible _ -> acc) []
 
 
 
@@ -36,7 +36,7 @@ generateLevels :: M.Info -- ^ Pattern information.
 	-> ([Level], PatternObjects) -- ^ Levels and pattern objects generated.
 generateLevels info = (lvls, patternObjects')
 	where
-		lvls = generateActivitiesLvl : generateGroupsLvl info : generateParticipantsLvl info : generateResourcesLvl info : []
+		lvls = [generateActivitiesLvl, generateGroupsLvl info, generateParticipantsLvl info, generateResourcesLvl info]
 		patternObjects' = (actObj,groupObj,partObj,resObj,rolObj)
 		groupObj = groupObjectsList info
 		(actObj,_,partObj,resObj,rolObj) = M.objects info
@@ -55,7 +55,7 @@ generateActivitiesLvl = ("Activity", [[["Initial"]], [["Expert"]], [["Jigsaw"]]]
 -- | 'generateGroupsLvl', generate groups level.
 generateGroupsLvl :: M.Info -- ^ Pattern information.
 	-> Level -- ^ Groups level.
-generateGroupsLvl info = ("Group", createGroupsInitial info : createGroupsExpert (M.themes info) : createGroupsJigsaw info : [])
+generateGroupsLvl info = ("Group", [createGroupsInitial info, createGroupsExpert (M.themes info), createGroupsJigsaw info])
 
 
 
@@ -69,14 +69,14 @@ createGroupsInitial info = [["Group " ++ show i] | i <- [1..nbGroupsInitial info
 -- | 'createGroupsExpert', create expert groups.
 createGroupsExpert :: [M.Theme] -- ^ Themes.
 	-> [[Group]] -- ^ Expert groups.
-createGroupsExpert themes = [["Group Expert " ++ (M.name t)] | t <- themes]
+createGroupsExpert themes = [["Group Expert " ++ M.name t] | t <- themes]
 
 
 
 -- | 'createGroupsJigsaw', create jigsaw groups.
 createGroupsJigsaw :: M.Info -- ^ Pattern information.
 	-> [[Group]] -- ^ Jigsaw groups.
-createGroupsJigsaw info = [["Group Jigsaw " ++ (show i)] | i <- [1..(length $ createParticipantsJigsaw (participantsList info) (M.themes info))]]
+createGroupsJigsaw info = [["Group Jigsaw " ++ show i] | i <- [1..(length $ createParticipantsJigsaw (participantsList info) (M.themes info))]]
 
 
 
@@ -85,7 +85,7 @@ createGroupsJigsaw info = [["Group Jigsaw " ++ (show i)] | i <- [1..(length $ cr
 -- | 'generateParticipantsLvl', generate participants level.
 generateParticipantsLvl :: M.Info -- ^ Pattern information.
 	-> Level -- ^ Participants level.
-generateParticipantsLvl info = ("Participant", map (\x -> map (\y -> [y]) x) (createParticipantsInitial info ++ createParticipantsExpert ps themes ++ createParticipantsJigsaw ps themes))
+generateParticipantsLvl info = ("Participant", map (map (: [])) (createParticipantsInitial info ++ createParticipantsExpert ps themes ++ createParticipantsJigsaw ps themes))
 	where
 		ps = participantsList info
 		themes = M.themes info
@@ -95,7 +95,7 @@ generateParticipantsLvl info = ("Participant", map (\x -> map (\y -> [y]) x) (cr
 -- | 'createParticipantsInitial', split participants into initial groups
 createParticipantsInitial :: M.Info -- ^ Pattern information.
 	-> [M.InitialGroup] -- ^ Initial groups.
-createParticipantsInitial info = map (\(_,x) -> x) $ createParticipantsInitialWithTheme info
+createParticipantsInitial info = map snd $ createParticipantsInitialWithTheme info
 
 
 
@@ -104,7 +104,7 @@ createParticipantsInitial info = map (\(_,x) -> x) $ createParticipantsInitialWi
 createParticipantsInitialWithTheme :: M.Info -- ^ Pattern information.
 	-> [(M.Theme, M.InitialGroup)] -- ^ Initial groups with their associated theme.
 createParticipantsInitialWithTheme info = createParticipantsInitial' (createParticipantsExpert (participantsList info) (M.themes info)) 
-	(M.themes info) $ map (\r -> possibleToList r) $ repartitionInitial info
+	(M.themes info) $ map possibleToList $ repartitionInitial info
 
 
 
@@ -124,7 +124,7 @@ createParticipantsExpert :: [Participant] -- ^ Participants.
 	-> [M.Theme] -- ^ Themes.
 	-> [M.ExpertGroup] -- ^ Expert groups.
 createParticipantsExpert participants themes =
-	foldl (\acc x -> addAll acc x) (replicate (length themes) []) (createParticipantsExpert' (createParticipantsJigsaw participants themes) themes)
+	foldl addAll (replicate (length themes) []) (createParticipantsExpert' (createParticipantsJigsaw participants themes) themes)
 
 
 
@@ -142,7 +142,7 @@ createParticipantsExpert'' :: [M.Theme] -- ^ Themes.
 	-> M.JigsawGroup  -- ^ Participants of one jigsaw group.
 	-> [[Participant]] -- ^ Participants splited between themes.
 createParticipantsExpert'' [] _ = []
-createParticipantsExpert'' themes ps = splitList ps $ repart
+createParticipantsExpert'' themes ps = splitList ps repart
 	where
 		repart = case repartition2 (length ps) themesInfo of
 			Possible list -> list
@@ -164,7 +164,7 @@ createParticipantsJigsaw participants themes = splitList participants $ possible
 -- | 'generateResourcesLvl', generate resources level.
 generateResourcesLvl :: M.Info -- ^ Pattern information.
 	-> Level -- ^ The level resources.
-generateResourcesLvl info = ("Resource", map (\x -> map (\y -> [y]) x) (createResourcesInitial info ++ createResourcesExpert ps themes ++ createResourcesJigsaw ps themes))
+generateResourcesLvl info = ("Resource", map (map (: [])) (createResourcesInitial info ++ createResourcesExpert ps themes ++ createResourcesJigsaw ps themes))
 	where
 		themes = M.themes info
 		ps = participantsList info
@@ -173,7 +173,7 @@ generateResourcesLvl info = ("Resource", map (\x -> map (\y -> [y]) x) (createRe
 -- | 'createResourcesInitial', create resources list for the expert level
 createResourcesInitial :: M.Info -- ^ Pattern information.
 	-> [[Resource]] -- ^ Resources.
-createResourcesInitial info = foldl (\acc (t, gs) -> acc ++ (createResourcesInitial' gs $ splitList2 (M.resources t) (length gs) (length $ M.resources t)))
+createResourcesInitial info = foldl (\acc (t, gs) -> acc ++ createResourcesInitial' gs (splitList2 (M.resources t) (length gs) (length $ M.resources t)))
 	[] $ nbGroupsInitialPerThemes info
 
 
@@ -200,7 +200,7 @@ createResourcesExpert' :: [M.Theme] -- ^ Themes.
 	-> [M.ExpertGroup] -- ^ Expert groups.
 	-> [[Resource]] -- ^ Resources.
 createResourcesExpert' [] _ = []
-createResourcesExpert' (t:themes) (g:groups) = map (\p -> resourcesTheme) g ++ createResourcesExpert' themes groups
+createResourcesExpert' (t:themes) (g:groups) = map (const resourcesTheme) g ++ createResourcesExpert' themes groups
 	where
 		resourcesTheme = M.resources t
 
@@ -233,7 +233,7 @@ repartitionInitial' :: [M.ExpertGroup] -- ^ Expert groups.
 repartitionInitial' [] _ _ _ _ = []
 repartitionInitial' (g:groups) (t:themes) nbPPG above below =
 	case repartition (length g) nbPPG above below True of
-		NotPossible msg -> NotPossible ("Can't do a good repartition for initial group on the theme " ++ (M.name t)) : repartitionInitial' groups themes nbPPG above below
+		NotPossible msg -> NotPossible ("Can't do a good repartition for initial group on the theme " ++ M.name t) : repartitionInitial' groups themes nbPPG above below
 		Possible list -> Possible list : repartitionInitial' groups themes nbPPG above below
 
 
@@ -254,14 +254,14 @@ repartitionJigsaw participants themes =
 -- | 'allResources', create a list with all the resources.
 allResources :: [M.Theme] -- ^ Themes.
 	-> [String]	-- ^ All resources.
-allResources themes = foldl (\acc t -> acc ++ (M.resources t)) [] themes
+allResources = foldl (\acc t -> acc ++ M.resources t) []
 
 
 
 -- | 'nbParticipantJigsaw', give information on the repartition wanted for jigsaw groups.
 nbParticipantJigsaw :: [M.Theme] -- ^ Themes.
 	-> (Int, Int, Int) -- ^ (number of participants wanted for a jigsaw group, how many participants additional are tolerated, how many participants less are tolerated)
-nbParticipantJigsaw themes = foldl (\(x,y,z) theme -> (x + M.nbExpert theme, y + M.upperMargin theme, z + M.lowerMargin theme)) (0, 0, 0) themes
+nbParticipantJigsaw = foldl (\(x,y,z) theme -> (x + M.nbExpert theme, y + M.upperMargin theme, z + M.lowerMargin theme)) (0, 0, 0)
 
 
 
@@ -276,7 +276,7 @@ nbGroupsInitial info = length $ createParticipantsInitial info
 nbGroupsInitialPerThemes :: M.Info -- ^ Pattern info.
 	-> [(M.Theme, [Int])] -- ^ (theme, length of groups of the theme)
 nbGroupsInitialPerThemes info = foldl (\acc t -> acc ++ [(t, foldl (\acc2 (t2,ps) -> 
-	if (M.name t2 == M.name t) then acc2 ++ [length ps] else acc2) [] $ createParticipantsInitialWithTheme info)]) [] (M.themes info)
+	if M.name t2 == M.name t then acc2 ++ [length ps] else acc2) [] $ createParticipantsInitialWithTheme info)]) [] (M.themes info)
 
 
 
@@ -292,5 +292,5 @@ groupObjectsList :: M.Info -- ^ Pattern information.
 	-> GroupObjects -- ^ Groups objects for .t2.
 groupObjectsList info = groupsInitial ++ groupsExpertJigsaw
 	where
-		groupsInitial = map (\(n, (t,_)) -> (n, n ++ " sur le thème " ++ (M.name t))) $ zip (concat $ createGroupsInitial info) $ createParticipantsInitialWithTheme info
+		groupsInitial = map (\(n, (t,_)) -> (n, n ++ " sur le thème " ++ M.name t)) $ zip (concat $ createGroupsInitial info) $ createParticipantsInitialWithTheme info
 		groupsExpertJigsaw = map (\g -> (g,g)) $ concat (createGroupsExpert (M.themes info) ++ createGroupsJigsaw info)

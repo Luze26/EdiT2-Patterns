@@ -42,8 +42,8 @@ generateLevels :: Info -- ^ Information for the pattern.
 	-> ([Level], PatternObjects) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
 generateLevels info = (lvls, (activityObjects, map (\g -> (g,g)) groups, partObj, resObj, roleObjects))
 	where
-		lvls = generateActivityLvl : (generateResourceLvl resources) : groupLvl : (generateRoleLvl $ (*) nbResources $ length groups) :
-			generateParticipantLvl participants repart nbResources : [] -- [Level], levels.
+		lvls = [generateActivityLvl, generateResourceLvl resources, groupLvl, generateRoleLvl $ (*) nbResources $ length groups,
+			generateParticipantLvl participants repart nbResources] -- [Level], levels.
 		groupLvl = generateGroupLvl nbResources groups -- The level for the group notion.
 		resources = resourcesNames resObj -- Resources names.
 		activityObjects = [("Introduction", ""), ("Learning", "")] -- Activity object for the pattern object.
@@ -65,7 +65,7 @@ generateActivityLvl = ("Activity", [[["Introduction"]],[["Learning"]]])
 -- | 'generateResourceLvl', generate the resource level.
 generateResourceLvl :: [Resource] -- ^ List of resources corresponding to passages.
 	-> Level -- ^ The resource's level.
-generateResourceLvl res = ("Resource", [[]] : (map (\r -> [r]) res) : []) -- A "fake" node is needed for the first activity where there isn't any resources.
+generateResourceLvl res = ("Resource", [[[]], map (: []) res]) -- A "fake" node is needed for the first activity where there isn't any resources.
 
 
 
@@ -73,14 +73,14 @@ generateResourceLvl res = ("Resource", [[]] : (map (\r -> [r]) res) : []) -- A "
 generateGroupLvl :: Int -- ^ Number of passages (= number of resources).
 	-> [String] -- ^ List of groups for the learning activity.
 	-> Level -- ^ The group's level.
-generateGroupLvl nb gs = ("Group", [[]] : (replicate nb $ map (\g -> [g]) gs)) -- A "fake" node is needed for the first activity where there isn't any groups.
+generateGroupLvl nb gs = ("Group", [[]] : replicate nb (map (: []) gs)) -- A "fake" node is needed for the first activity where there isn't any groups.
 
 
 
 -- | 'generateRoleLvl', generate the role level.
 generateRoleLvl :: Int -- ^ Number of groups for the learning activity.
 	-> Level -- ^ The role's level.
-generateRoleLvl nbGroup = ("Role", [[]] : (replicate nbGroup [["Teacher"],["Student"]])) -- A "fake" node is needed for the first activity where there isn't any roles.
+generateRoleLvl nbGroup = ("Role", [[]] : replicate nbGroup [["Teacher"],["Student"]]) -- A "fake" node is needed for the first activity where there isn't any roles.
 
 
 
@@ -89,8 +89,8 @@ generateParticipantLvl :: [Participant] -- ^ List of participants.
 	-> [Int] -- ^ Repartition of participants for the learning activity.
 	-> Int  -- ^ Number of passages (= number of resources).
 	-> Level -- ^ Participant's level.
-generateParticipantLvl participants repart nbResources = ("Participant", (map (\p -> [p]) participants) :
-	(roundRobin nbResources $ splitList participants repart)) -- It creates the list for the first activity where participants are togethere. And for each passage, it turns the list of participant for each group.
+generateParticipantLvl participants repart nbResources = ("Participant", map (: []) participants :
+	roundRobin nbResources (splitList participants repart)) -- It creates the list for the first activity where participants are togethere. And for each passage, it turns the list of participant for each group.
 
 
 
@@ -100,7 +100,7 @@ roundRobin :: Int -- ^ Number of time that it must turns the list (= number of p
 	-> [[Participant]] -- ^ Lists of participants already splitted in groups.
 	-> [[[Participant]]] -- ^ The part of the participant's level for the learning activity.
 roundRobin 0 _ = []
-roundRobin i participants = (foldl (\acc g -> [[head g]] : [tail g] : acc) [] turned) ++ roundRobin (i-1) turned
+roundRobin i participants = foldl (\acc g -> [[head g]] : [tail g] : acc) [] turned ++ roundRobin (i-1) turned
 	where
 		turned = turn participants -- Groups of participants turned.
 
@@ -116,7 +116,7 @@ turn ((p:ps):pss) = (ps ++ [p]) : turn pss
 -- | 'createGroups', create groups for the learning level.
 createGroups :: Int -- ^ Number of groups.
 	-> [String] -- ^ List of groups.
-createGroups nb = ["Group " ++ (show i) | i <- [1..nb]]
+createGroups nb = ["Group " ++ show i | i <- [1..nb]]
 
 
 
@@ -127,4 +127,4 @@ repartitionParticipant :: Int -- ^ Number of participants.
 	-> Int -- ^ Below margin.
 	-> Bool -- ^ If the user prefers a uniform repartition or a closest repartition.
 	-> Possible [Int] -- ^ Possible size's repartition.
-repartitionParticipant nbP nbPPG above below uniform = repartition nbP nbPPG above below uniform
+repartitionParticipant = repartition

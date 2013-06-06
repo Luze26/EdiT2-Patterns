@@ -30,7 +30,7 @@ generateLevels :: Info -- ^ Information for the pattern.
 	-> ([Level], U.PatternObjects) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
 generateLevels info = (lvls, patternObject)
 	where
-		lvls = generateActivityLvl : generateGroupLvl groups : generateRoleLvl nbGroups rolesNames : generateParticipantLvl participants repart : []  -- Levels.
+		lvls = [generateActivityLvl, generateGroupLvl groups, generateRoleLvl nbGroups rolesNames, generateParticipantLvl participants repart]  -- Levels.
 		groups = createGroups nbGroups -- Groups for the simulation group activity.
 		nbGroups = length repart -- Number of groups for the simulation group activity.
 		rolesNames = U.rolesNames rolObj -- Names of roles.
@@ -51,7 +51,7 @@ generateActivityLvl = ("Activity", [[["Introduction"]],[["Roles"]],[["Groups sim
 -- | 'generateGroupLvl', generate the group level.
 generateGroupLvl :: [String] -- ^ Groups for the group simulation activity.
 	-> Level -- ^ The group's level.
-generateGroupLvl groups = ("Group", [[]] : [[]] : (map (\g -> [g]) groups) : [[[]], [[]]]) -- A "fake" node is needed for each activity without any groups.
+generateGroupLvl groups = ("Group", [[[]], [[]], map (: []) groups, [[]], [[]]]) -- A "fake" node is needed for each activity without any groups.
 
 
 
@@ -59,9 +59,9 @@ generateGroupLvl groups = ("Group", [[]] : [[]] : (map (\g -> [g]) groups) : [[[
 generateRoleLvl :: Int -- ^ Number of groups for the simulation group activity.
 	-> [U.Role] -- ^ Roles' names.
 	-> Level -- ^ The role's level.
-generateRoleLvl nbGroup rolees = ("Role", [[]] : rolees' : replicate nbGroup rolees' ++ (map (\g -> [g]) (createGroups nbGroup) : [[[]]]))
+generateRoleLvl nbGroup rolees = ("Role", [[]] : rolees' : replicate nbGroup rolees' ++ (map (: []) (createGroups nbGroup) : [[[]]]))
 	where
-		rolees' = map (\r -> [r]) rolees
+		rolees' = map (: []) rolees
 
 
 
@@ -71,10 +71,10 @@ generateParticipantLvl :: [U.Participant] -- ^ List of participants.
 	-> Level -- ^ Participant's level.
 generateParticipantLvl ps repart = ("Participant", ps' : psRoles ++ psGroupsAndRoles ++ psSimuGroups ++ replicate 2 ps')
 	where
-		ps' = map (\p -> [p]) ps -- Transform the list of participants in a list of list to match the fact that the content of a node is a list.
+		ps' = map (: []) ps -- Transform the list of participants in a list of list to match the fact that the content of a node is a list.
 		psRoles = mergeRoles (replicate nbRoles []) psGroupsAndRoles nbRoles -- From the list of participants divided by groups and roles, we merge groups to have participants divided only by roles.
 		psGroupsAndRoles = createParticipantsRoles psSimuGroups repart -- Divide simulation groups for the activity simulation, to groups also divided by roles.
-		psSimuGroups = U.splitList ps' $ map (\g -> sum g) repart -- Divide participants in groups with a correct number of actors.
+		psSimuGroups = U.splitList ps' $ map sum repart -- Divide participants in groups with a correct number of actors.
 		nbRoles = length $ head repart -- Number of roles.
 
 
@@ -101,7 +101,7 @@ createParticipantsRoles (g:groups) (s:splits) = U.splitList g s ++ createPartici
 -- | 'createGroups', create groups for the simulation group activity.
 createGroups :: Int -- ^ Number of groups.
 	-> [String] -- ^ List of groups.
-createGroups nb = [ "Group" ++ (show i) | i <- [1..nb]]
+createGroups nb = [ "Group" ++ show i | i <- [1..nb]]
 
 
 

@@ -69,7 +69,7 @@ data Possible a
 -- | 'readInt', read an int
 readInt :: String -- ^ The number.
 	-> Int -- ^ Int value.
-readInt n = read n
+readInt = read
 
 
 
@@ -97,21 +97,21 @@ readText text reader = (read $ head linees, reader (linees !! 1))
 -- | 'participantsLogins', return the list of participants logins.
 participantsLogins :: ParticipantObjects -- ^ Participants objects.
 	-> [Participant] -- ^ Participants logins.
-participantsLogins ps = map (\(login,_,_,_,_,_) -> login) ps
+participantsLogins = map (\(login,_,_,_,_,_) -> login)
 
 
 
 -- | 'resourcesNames', returns the list of resources names.
 resourcesNames :: ResourceObjects -- ^ Resources objects.
 	-> [Resource] -- ^ Resources names.
-resourcesNames rs = map (\(name,_,_,_) -> name) rs
+resourcesNames = map (\(name,_,_,_) -> name)
 
 
 
 -- | 'rolesNames', returns the list of roles names.
 rolesNames :: RoleObjects -- ^ Roles objects.
 	-> [Role] -- ^ Roles names.
-rolesNames rs = map (\(name,_) -> name) rs
+rolesNames = map fst
 
 
 
@@ -149,7 +149,7 @@ rolesObjects (_,_,_,_,o) = o
 -- | 'createList', Create a list a participants for test.
 createList :: Int -- ^ Number of participants to be created
 	-> String -- ^ List of participants.
-createList n = show [ 'e' : (show i) | i <- [1..n]]
+createList n = show [ 'e' : show i | i <- [1..n]]
 
 
 
@@ -162,7 +162,7 @@ writeT2 :: String -- ^ File path.
 	-> PatternObjects -- ^ Pattern objects.
 	-> IO()
 writeT2 file notions tree objects = writeFile file $ show notions ++ "\n\nscript=" ++
-	(showTree tree) ++ "\n\n" ++ (showObjects objects) ++ "\n\nteacherNotes = " ++ (show $ replicate (nbLeaf tree) "")
+	showTree tree ++ "\n\n" ++ showObjects objects ++ "\n\nteacherNotes = " ++ show (replicate (nbLeaf tree) "")
 
 
 
@@ -177,15 +177,15 @@ writeT2Err file errs = writeFile file $ errors errs
 -- 'showObjects', convert pattern objects in a string for .t2
 showObjects :: PatternObjects -- ^ Pattern objects.
 	-> String -- ^ Pattern objects in .t2 format.
-showObjects (a,g,p,r,ro) = "activityObjectsList = " ++ (show a) ++ "\ngroupObjectsList = " ++ (show g) ++
-	"\nparticipantObjectsList = " ++ (show p) ++ "\nresourceObjectsList = " ++ (show r) ++ "\nroleObjectsList = " ++ (show ro)
+showObjects (a,g,p,r,ro) = "activityObjectsList = " ++ show a ++ "\ngroupObjectsList = " ++ show g ++
+	"\nparticipantObjectsList = " ++ show p ++ "\nresourceObjectsList = " ++ show r ++ "\nroleObjectsList = " ++ show ro
 
 
 
 -- | 'errors', convert errors in a .t2 format.
 errors :: [Possible a] -- ^ Errors.
 	-> String -- ^ Errors in .t2.
-errors err = "Error=[" ++ (errors' err True) ++ "]\n"
+errors err = "Error=[" ++ errors' err True ++ "]\n"
 
 
 
@@ -194,7 +194,7 @@ errors' :: [Possible a] -- ^ Errors.
 	-> Bool -- ^ If it's the first error.
 	-> String -- ^ Errors in .t2.
 errors' [] _ = ""
-errors' (NotPossible msg:es) first = (if (first) then "\"" else ",\"") ++ msg ++ "\"" ++ errors' es False
+errors' (NotPossible msg:es) first = (if first then "\"" else ",\"") ++ msg ++ "\"" ++ errors' es False
 
 
 
@@ -210,7 +210,7 @@ readHeader content = head $ lines content
 -- | 'stripHeader', strip the header of .t2 content.
 stripHeader :: String -- ^ .t2 content.
 	-> String -- ^ .t2 content without the head (notions names + "script=").
-stripHeader text = drop 7 $ concatMap (\l -> l ++ "\n") $ drop 2 $ lines text
+stripHeader text = drop 7 $ unlines $ drop 2 $ lines text
 
 
 
@@ -220,7 +220,7 @@ stripFooter :: [String] -- ^ The file content in lines.
 stripFooter [] = []
 stripFooter (l:ls)
 	| l == "" = []
-	| otherwise = l : (stripFooter ls)
+	| otherwise = l : stripFooter ls
 
 
 
@@ -249,7 +249,7 @@ splitList :: [a] -- ^ The list to split.
 	-> [Int] -- ^ List of groups sizes.
 	-> [[a]] -- ^ The list splitted.
 splitList [] _ = []
-splitList list (n:numbers) = first : (splitList rest numbers)
+splitList list (n:numbers) = first : splitList rest numbers
 	where
 		(first, rest) = splitAt n list
 
@@ -293,8 +293,8 @@ repartition nbP n a b uniform
 	where
 		(ok, list1) = repartitionUniform nbP n a b 0 -- It tries to do an uniform repartition with exactly the same size for each splits.
 		(ok2, list2) = repartition' nbP n a b 0 -- If there isn't any uniform repartition, it tries to create a repartion with less variations possible.
-		diff1 = abs $ nbP - (head list1) -- The difference between the preferred size and the size possible for an uniform repartion.
-		diff2 = max (abs $ nbP - (minimum list2)) (abs $ nbP - (maximum list2)) -- The difference between the preferred size and the farthest size.
+		diff1 = abs $ nbP - head list1 -- The difference between the preferred size and the size possible for an uniform repartion.
+		diff2 = max (abs $ nbP - minimum list2) (abs $ nbP - maximum list2) -- The difference between the preferred size and the farthest size.
 
 
 
@@ -312,7 +312,7 @@ repartition' nbP n a b m
 	where
 		nb = n-m
 		sub = nbP-nb
-		decrease = if m<b && nb>2 then (repartition' nbP n a b (m+1)) else (False, [])
+		decrease = if m<b && nb>2 then repartition' nbP n a b (m+1) else (False, [])
 
 
 

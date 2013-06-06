@@ -10,9 +10,9 @@ import System.Environment( getArgs )
 main :: IO()
 main = do
 	args <- getArgs
-	if (length args < 1) -- If there is no arguments, we throw an error message.
-	then do putStrLn "Not enough arguments.\nUsage: ediT2-haskell <pattern's name> [arguments]"
-	else do main' args
+	if length args < 1 -- If there is no arguments, we throw an error message.
+	then putStrLn "Not enough arguments.\nUsage: ediT2-haskell <pattern's name> [arguments]"
+	else main' args
 
 
 

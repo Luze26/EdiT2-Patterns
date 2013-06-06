@@ -32,11 +32,11 @@ generate' :: Level -- ^ Level treated.
 	-> Int -- ^ Index of the node, in the subtree.
 	-> [NTree Cell] -- ^ List of subtrees for the given level.
 generate' (_, []) _ _ _ = []	-- If there is no more level, the generation is done for that branch.
-generate' (name, [r]:rows) lvls pid i = (Node (name, id, pid, r) subtree) : generate' (name, rows) ls pid (i+1)	-- For each list of level's list, we create the corresponding node.
+generate' (name, [r]:rows) lvls pid i = Node (name, id, pid, r) subtree : generate' (name, rows) ls pid (i+1)	-- For each list of level's list, we create the corresponding node.
 	where
-		id = pid ++ (show i)	-- Node's numbering.
+		id = pid ++ show i	-- Node's numbering.
 		(ls, subtree)			-- ls -> what we haven't treated yet. subtree -> subtrees for the given node.
-			| lvls == [] = ([], [])
+			| null lvls = ([], [])
 			| otherwise = generate'' (head lvls) (tail lvls) id 1
 
 
@@ -49,11 +49,11 @@ generate'' :: Level -- ^ Level treated.
 	-> ([Level], [NTree Cell]) -- ^ Tuple with what we haven't treated for each level, and a list of subtrees.
 generate'' (name, []) lvls _ _ = ((name,[]):lvls, [])
 generate'' (name, r:rows) lvls pid i
-	| r == [] = ((name,rows):lvls, [])
-	| otherwise = (ls, (Node (name, id, pid, head r) subtree):nexttree)
+	| null r = ((name,rows):lvls, [])
+	| otherwise = (ls, Node (name, id, pid, head r) subtree : nexttree)
 	where
-		id = pid ++ (show i)	-- Node's numbering.
+		id = pid ++ show i	-- Node's numbering.
 		(lsub, subtree)			-- lsub -> what we haven't treated yet. subtree -> subtrees for the given node.
-			| lvls == [] = ([], [])
+			| null lvls = ([], [])
 			| otherwise = generate'' (head lvls) (tail lvls) id 1
-		(ls, nexttree) = generate'' (name, (tail r):rows) lsub pid (i+1) -- ls -> what we haven't treated yet. nexttree -> next tree on the same level for the given node.
+		(ls, nexttree) = generate'' (name, tail r :rows) lsub pid (i+1) -- ls -> what we haven't treated yet. nexttree -> next tree on the same level for the given node.
