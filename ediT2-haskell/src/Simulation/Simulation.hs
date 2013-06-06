@@ -51,7 +51,7 @@ generateActivityLvl = ("Activity", [[["Introduction"]],[["Roles"]],[["Groups sim
 -- | 'generateGroupLvl', generate the group level.
 generateGroupLvl :: [String] -- ^ Groups for the group simulation activity.
 	-> Level -- ^ The group's level.
-generateGroupLvl groups = ("Group", [["Group???"]] : [["Group???"]] : (map (\g -> [g]) groups) : [[["Group???"]], [["Group???"]]]) -- A "fake" node is needed for each activity without any groups.
+generateGroupLvl groups = ("Group", [[]] : [[]] : (map (\g -> [g]) groups) : [[[]], [[]]]) -- A "fake" node is needed for each activity without any groups.
 
 
 
@@ -59,7 +59,7 @@ generateGroupLvl groups = ("Group", [["Group???"]] : [["Group???"]] : (map (\g -
 generateRoleLvl :: Int -- ^ Number of groups for the simulation group activity.
 	-> [U.Role] -- ^ Roles' names.
 	-> Level -- ^ The role's level.
-generateRoleLvl nbGroup rolees = ("Role", [["Role???"]] : rolees' : replicate nbGroup rolees' ++ (map (\g -> [g]) (createGroups nbGroup) : [[["Role???"]]]))
+generateRoleLvl nbGroup rolees = ("Role", [[]] : rolees' : replicate nbGroup rolees' ++ (map (\g -> [g]) (createGroups nbGroup) : [[[]]]))
 	where
 		rolees' = map (\r -> [r]) rolees
 

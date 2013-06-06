@@ -10,4 +10,4 @@ Executable ediT2-haskell
   Main-is:           ediT2-haskell.hs
   Hs-Source-Dirs:    src
   Other-Modules:     RT.RT
-  ghc-options:       -XDoAndIfThenElse
+  extensions:       DoAndIfThenElse

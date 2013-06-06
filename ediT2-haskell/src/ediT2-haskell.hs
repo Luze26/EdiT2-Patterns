@@ -6,17 +6,19 @@ import System.Environment( getArgs )
 
 
 
--- | 'main', entry point. Expect a file path in argument pointing to a file containing information needed.
+-- | 'main', entry point. Execute the correct module wanted by the first argument.
 main :: IO()
 main = do
 	args <- getArgs
-	if (length args < 1) 
+	if (length args < 1) -- If there is no arguments, we throw an error message.
 	then do putStrLn "Not enough arguments.\nUsage: ediT2-haskell <pattern's name> [arguments]"
 	else do main' args
 
 
 
-main' :: [String] -> IO ()
+-- | 'main'', Execute the correct module.
+main' :: [String] -- ^ Arguments.
+	-> IO ()
 main' (pattern:args)
 	| pattern == "Constraint" = Constraint.run args
 	| pattern == "Jigsaw" = Jigsaw.run args

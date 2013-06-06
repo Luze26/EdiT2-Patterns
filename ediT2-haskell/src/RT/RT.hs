@@ -65,7 +65,7 @@ generateActivityLvl = ("Activity", [[["Introduction"]],[["Learning"]]])
 -- | 'generateResourceLvl', generate the resource level.
 generateResourceLvl :: [Resource] -- ^ List of resources corresponding to passages.
 	-> Level -- ^ The resource's level.
-generateResourceLvl res = ("Resource", [["Resource???"]] : (map (\r -> [r]) res) : []) -- A "fake" node is needed for the first activity where there isn't any resources.
+generateResourceLvl res = ("Resource", [[]] : (map (\r -> [r]) res) : []) -- A "fake" node is needed for the first activity where there isn't any resources.
 
 
 
@@ -73,14 +73,14 @@ generateResourceLvl res = ("Resource", [["Resource???"]] : (map (\r -> [r]) res)
 generateGroupLvl :: Int -- ^ Number of passages (= number of resources).
 	-> [String] -- ^ List of groups for the learning activity.
 	-> Level -- ^ The group's level.
-generateGroupLvl nb gs = ("Group", [["Group???"]] : (replicate nb $ map (\g -> [g]) gs)) -- A "fake" node is needed for the first activity where there isn't any groups.
+generateGroupLvl nb gs = ("Group", [[]] : (replicate nb $ map (\g -> [g]) gs)) -- A "fake" node is needed for the first activity where there isn't any groups.
 
 
 
 -- | 'generateRoleLvl', generate the role level.
 generateRoleLvl :: Int -- ^ Number of groups for the learning activity.
 	-> Level -- ^ The role's level.
-generateRoleLvl nbGroup = ("Role", [["Role???"]] : (replicate nbGroup [["Teacher"],["Student"]])) -- A "fake" node is needed for the first activity where there isn't any roles.
+generateRoleLvl nbGroup = ("Role", [[]] : (replicate nbGroup [["Teacher"],["Student"]])) -- A "fake" node is needed for the first activity where there isn't any roles.
 
 
 
