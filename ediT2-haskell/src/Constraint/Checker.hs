@@ -72,10 +72,10 @@ notContainedId :: Identificators -- ^ Identificators.
 	-> NTree Cell -- ^ The tree.
 	-> Identificators -- ^ Identificators not matched.
 notContainedId ids tree
-	| null idLeft = [] -- If there is no more identificators not matched, we return an empty list.
-	| otherwise = foldl intersect idLeft (map (notContainedId idLeft) (subtrees tree)) -- Return the list of identificators not matched by the tree and its subtrees.
+	| null idRemaining = [] -- If there is no more identificators not matched, we return an empty list.
+	| otherwise = foldl intersect idRemaining (map (notContainedId idRemaining) (subtrees tree)) -- Return the list of identificators not matched by the tree and its subtrees.
 	where
-		idLeft = notContainedId' tree ids -- Identificators not matched by the root node of the tree.
+		idRemaining = notContainedId' tree ids -- Identificators not matched by the root node of the tree.
 
 
 
@@ -127,7 +127,7 @@ checkUnder1 itemss (t:trees)
 
 -- | 'containsId', check if a given number of identificators are matched.
 containsId :: Identificators -- ^ Identificators.
-	-> Identificators -- ^ Identificators left to check for the root node.
+	-> Identificators -- ^ Identificators remaining to check for the root node.
 	-> Int -- ^ Number of matchs wanted.
 	-> NTree Cell -- ^ The tree.
 	-> Bool -- ^ 'True', if there is a number of matched wanted. 'False', otherwise.

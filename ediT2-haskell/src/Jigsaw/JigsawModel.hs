@@ -2,7 +2,7 @@
 module Jigsaw.JigsawModel where
 
 
-import Util.Util ( Participant, Resource, PatternObjects )
+import Util.KobbeComponents ( Participant, Resource, PatternObjects )
 
 
 

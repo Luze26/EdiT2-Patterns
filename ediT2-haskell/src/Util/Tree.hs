@@ -14,6 +14,8 @@ module Util.Tree
 	nbLeaf
 ) where
 
+
+
 -- | Name of the column (notion), in which the cell is.
 type CellLabel = String
 

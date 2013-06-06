@@ -1,7 +1,7 @@
 module Simulation.SimulationModel where
 
 
-import Util.Util ( PatternObjects, Role, Resource )
+import Util.KobbeComponents ( PatternObjects, Role, Resource )
 
 
 

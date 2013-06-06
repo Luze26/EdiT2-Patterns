@@ -6,7 +6,8 @@ module Simulation.Simulation
 
 
 import Simulation.SimulationModel
-import qualified Util.Util as U
+import Util.Util
+import qualified Util.KobbeComponents as K
 import Util.TreeGenerator
 
 
@@ -16,28 +17,28 @@ run :: [String] -> IO ()
 run [] = putStrLn "Not enough arguments for simulation.\nUsage: ediT2-haskell Simulation <information file>"
 run (fileInfo:_) = do
 	text <- readFile fileInfo -- Read the file past in argument
-	let (file, info) = U.readText text (\x -> read x :: Info) -- Extract information from the text. file = output file. info = information.
+	let (file, info) = readText text (\x -> read x :: Info) -- Extract information from the text. file = output file. info = information.
 	let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
-	let repart = repartitionGroups (length $ U.participantsObjects $ objects info) $ roles info -- Repartition by groups and roles for the simulation group activity.
+	let repart = repartitionGroups (length $ K.participantsObjects $ objects info) $ roles info -- Repartition by groups and roles for the simulation group activity.
 	case repart of
-		U.Possible _ -> U.writeT2 file ["Activity","Group","Role","Participant","Resource"] (generate lvls) patternObjects
-		U.NotPossible _ -> U.writeT2Err file [U.NotPossible "Can't do a good repartition in groups."]
+		Possible _ -> writeT2 file ["Activity","Group","Role","Participant","Resource"] (generate lvls) (K.showObjects patternObjects)
+		NotPossible _ -> writeT2Err file [NotPossible "Can't do a good repartition in groups."]
 
 
 
 -- | 'generateLevels', generatee the levels for the tree.
 generateLevels :: Info -- ^ Information for the pattern.
-	-> ([Level], U.PatternObjects) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
+	-> ([Level], K.PatternObjects) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
 generateLevels info = (lvls, patternObject)
 	where
 		lvls = [generateActivityLvl, generateGroupLvl groups, generateRoleLvl nbGroups rolesNames, generateParticipantLvl participants repart]  -- Levels.
 		groups = createGroups nbGroups -- Groups for the simulation group activity.
 		nbGroups = length repart -- Number of groups for the simulation group activity.
-		rolesNames = U.rolesNames rolObj -- Names of roles.
-		repart = U.possibleToList $ repartitionGroups (length partObj) $ roles info -- Repartition by groups and roles for the simulation group activity.
+		rolesNames = K.rolesNames rolObj -- Names of roles.
+		repart = possibleToList $ repartitionGroups (length partObj) $ roles info -- Repartition by groups and roles for the simulation group activity.
 		patternObject = (activityObject, map (\g -> (g,"")) groups, partObj, resObj, rolObj) -- pattern object resulting of the generation.
 		activityObject = [("Introduction",""),("Roles",""),("Groups simulation",""),("Simulation",""),("Share","")]
-		participants = U.participantsLogins partObj -- Participants names.
+		participants = K.participantsLogins partObj -- Participants names.
 		(_,_,partObj,resObj,rolObj) = objects info -- Pattern object given in information.
 
 
@@ -57,7 +58,7 @@ generateGroupLvl groups = ("Group", [[[]], [[]], map (: []) groups, [[]], [[]]])
 
 -- | 'generateRoleLvl', generate the role level.
 generateRoleLvl :: Int -- ^ Number of groups for the simulation group activity.
-	-> [U.Role] -- ^ Roles' names.
+	-> [K.Role] -- ^ Roles' names.
 	-> Level -- ^ The role's level.
 generateRoleLvl nbGroup rolees = ("Role", [[]] : rolees' : replicate nbGroup rolees' ++ (map (: []) (createGroups nbGroup) : [[[]]]))
 	where
@@ -66,7 +67,7 @@ generateRoleLvl nbGroup rolees = ("Role", [[]] : rolees' : replicate nbGroup rol
 
 
 -- | 'generateParticipantLvl', generate the participant level.
-generateParticipantLvl :: [U.Participant] -- ^ List of participants.
+generateParticipantLvl :: [K.Participant] -- ^ List of participants.
 	-> [[Int]] -- ^ Repartition of participants for the simulation group activity.
 	-> Level -- ^ Participant's level.
 generateParticipantLvl ps repart = ("Participant", ps' : psRoles ++ psGroupsAndRoles ++ psSimuGroups ++ replicate 2 ps')
@@ -74,27 +75,27 @@ generateParticipantLvl ps repart = ("Participant", ps' : psRoles ++ psGroupsAndR
 		ps' = map (: []) ps -- Transform the list of participants in a list of list to match the fact that the content of a node is a list.
 		psRoles = mergeRoles (replicate nbRoles []) psGroupsAndRoles nbRoles -- From the list of participants divided by groups and roles, we merge groups to have participants divided only by roles.
 		psGroupsAndRoles = createParticipantsRoles psSimuGroups repart -- Divide simulation groups for the activity simulation, to groups also divided by roles.
-		psSimuGroups = U.splitList ps' $ map sum repart -- Divide participants in groups with a correct number of actors.
+		psSimuGroups = splitList ps' $ map sum repart -- Divide participants in groups with a correct number of actors.
 		nbRoles = length $ head repart -- Number of roles.
 
 
 
 -- | 'mergeRoles', merge participants of the same role from groups of simulation group activity.
-mergeRoles :: [[[U.Participant]]] -- ^ Participants divided by roles.
-	-> [[[U.Participant]]] -- ^ Participants divided by groups and roles.
+mergeRoles :: [[[K.Participant]]] -- ^ Participants divided by roles.
+	-> [[[K.Participant]]] -- ^ Participants divided by groups and roles.
 	-> Int -- ^ Number of roles.
-	-> [[[U.Participant]]] -- ^ Participants divided by roles
+	-> [[[K.Participant]]] -- ^ Participants divided by roles
 mergeRoles acc [] _ = acc
-mergeRoles acc groups nb = U.addAll (mergeRoles acc (drop nb groups) nb) $ take nb groups
+mergeRoles acc groups nb = addAll (mergeRoles acc (drop nb groups) nb) $ take nb groups
 
 
 
 -- | 'createParticipantsRoles', create the list of group of participants divided by roles.
-createParticipantsRoles :: [[[U.Participant]]] -- ^ Participants divided in simulation groups.
+createParticipantsRoles :: [[[K.Participant]]] -- ^ Participants divided in simulation groups.
 	-> [[Int]] -- ^ Splits by role for each simulation group.
-	-> [[[U.Participant]]] -- ^ Participants divided by role.
+	-> [[[K.Participant]]] -- ^ Participants divided by role.
 createParticipantsRoles [] _ = []
-createParticipantsRoles (g:groups) (s:splits) = U.splitList g s ++ createParticipantsRoles groups splits
+createParticipantsRoles (g:groups) (s:splits) = splitList g s ++ createParticipantsRoles groups splits
 
 
 
@@ -108,5 +109,5 @@ createGroups nb = [ "Group" ++ show i | i <- [1..nb]]
 -- | 'repartitionGroups', give the number of participant needed per role per group.
 repartitionGroups :: Int -- ^ The number of participants.
 	-> [RoleSimu] -- ^ Roles.
-	-> U.Possible [[Int]] -- ^ Repartition.
-repartitionGroups nbP rolees = U.repartition2Multiple nbP (map (\r -> (nbActor r, above r, below r)) rolees)
+	-> Possible [[Int]] -- ^ Repartition.
+repartitionGroups nbP rolees = repartition2Multiple nbP (map (\r -> (nbActor r, above r, below r)) rolees)

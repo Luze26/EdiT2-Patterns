@@ -6,7 +6,10 @@ module Util.TreeGenerator
 	generate
 ) where
 
+
 import Util.Tree
+
+
 
 -- | Name of a level (= name of a column = label name).
 type Name = String

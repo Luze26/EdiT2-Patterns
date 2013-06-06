@@ -2,6 +2,7 @@ import qualified Constraint.Checker as Constraint
 import qualified Jigsaw.Jigsaw as Jigsaw
 import qualified RT.RT as RT
 import qualified Simulation.Simulation as Simulation
+import qualified Editor.Editor as Editor
 import System.Environment( getArgs )
 
 
@@ -24,4 +25,5 @@ main' (pattern:args)
 	| pattern == "Jigsaw" = Jigsaw.run args
 	| pattern == "RT" = RT.run args
 	| pattern == "Simulation" = Simulation.run args
-	| otherwise = putStrLn "Unknow pattern or command. Possibilities: RT, Jigsaw, Simulation, Constraint"
+	| pattern == "Editor" = Editor.run args
+	| otherwise = putStrLn "Unknow pattern or command.\nPossibilities: RT, Jigsaw, Simulation, Editor, Constraint."

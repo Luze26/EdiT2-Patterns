@@ -6,6 +6,7 @@ module Jigsaw.Jigsaw (
 
 import Util.Util
 import Util.TreeGenerator
+import Util.KobbeComponents
 import qualified Jigsaw.JigsawModel as M
 
 
@@ -19,7 +20,7 @@ run (fileInfo:_) = do
 	let noPoss = notPossible $ repartitionJigsaw (participantsList info) (M.themes info) : repartitionInitial info
 	if null noPoss
 		then do let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
-			writeT2 file ["Activity","Resource","Group","Role","Participant"] (generate lvls) patternObjects -- Write a fil
+			writeT2 file ["Activity","Resource","Group","Role","Participant"] (generate lvls) (showObjects patternObjects) -- Write a fil
 		else writeT2Err file noPoss
 
 
