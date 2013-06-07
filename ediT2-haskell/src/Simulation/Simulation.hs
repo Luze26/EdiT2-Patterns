@@ -31,7 +31,8 @@ generateLevels :: Info -- ^ Information for the pattern.
 	-> ([Level], K.PatternObjects) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
 generateLevels info = (lvls, patternObject)
 	where
-		lvls = [generateActivityLvl, generateGroupLvl groups, generateRoleLvl nbGroups rolesNames, generateParticipantLvl participants repart]  -- Levels.
+		lvls = [generateActivityLvl, generateGroupLvl groups, generateRoleLvl nbGroups rolesNames, generateParticipantLvl participants repart,
+			generateResourceLvl (resourcesProblem info) (roles info) nbGroups (length partObj) repart]  -- Levels.
 		groups = createGroups nbGroups -- Groups for the simulation group activity.
 		nbGroups = length repart -- Number of groups for the simulation group activity.
 		rolesNames = K.rolesNames rolObj -- Names of roles.
@@ -77,6 +78,30 @@ generateParticipantLvl ps repart = ("Participant", ps' : psRoles ++ psGroupsAndR
 		psGroupsAndRoles = createParticipantsRoles psSimuGroups repart -- Divide simulation groups for the activity simulation, to groups also divided by roles.
 		psSimuGroups = splitList ps' $ map sum repart -- Divide participants in groups with a correct number of actors.
 		nbRoles = length $ head repart -- Number of roles.
+
+
+
+-- | 'generateResourceLvl', generate the resource level.
+generateResourceLvl :: [K.Resource] -- ^ List of resource for the problem.
+	-> [RoleSimu] -- ^ List of roles.
+	-> Int -- ^ Number of groups.
+	-> Int -- ^ Number of participants.
+	-> [[Int]] -- ^ Repartition by groups and roles for the simulation group activity.
+	-> Level -- ^ Participant's level.
+generateResourceLvl resPb rolees nbGroups nbParticipants repart =
+	("Resource", replicate nbParticipants resPb' ++ resSimu ++ replicate (nbParticipants * 3) [[]])
+	where
+		resPb' = map (: []) resPb
+		resSimu = createResourcesForRoles rolees $ foldl sumList [] repart
+
+
+
+-- | 'createResourcesForRoles', create resources for each students for his role.
+createResourcesForRoles :: [RoleSimu] -- ^ List of roles.
+	-> [Int] -- ^ Number of participants per role.
+	-> [[[K.Resource]]] -- ^ Resources for each students for his role.
+createResourcesForRoles [] _ = []
+createResourcesForRoles (role:roless) (repart:reparts) = (replicate repart $ map (: []) $ resources role) ++ createResourcesForRoles roless reparts
 
 
 

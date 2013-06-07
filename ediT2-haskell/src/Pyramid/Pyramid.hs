@@ -1,3 +1,9 @@
+-- | Module to generate .t2 file for the pattern Pyramid.
+module Pyramid (
+	run
+) where
+
+
 import Util.Util
 import Util.TreeGenerator
 import System.Environment( getArgs )
@@ -15,10 +21,10 @@ data Info =
 
 
 
--- | 'main', entry point. Expect a file path in argument pointing to a file containing information needed.
-main :: IO()
-main = do
-	args <- getArgs
-	text <- readFile $ head args -- Read the file past in argument
+-- | 'run', entry point. Expect a file path in argument pointing to a file containing information needed.
+run :: [String] -> String
+run [] = putStrLn "Not enough arguments for pyramid.\nUsage: ediT2-haskell Pyramid <information file>"
+run (fileInfo:_) = do
+	text <- readFile fileInfo -- Read the file past in argument
 	let (file, info) = readText text (\x -> read x :: Info) -- Extract information from the text. file = output file. info = information.
 	
