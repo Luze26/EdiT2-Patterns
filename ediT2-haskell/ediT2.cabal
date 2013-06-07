@@ -9,5 +9,5 @@ Executable ediT2-haskell
   Build-Depends:     base >= 3 && < 5
   Main-is:           ediT2-haskell.hs
   Hs-Source-Dirs:    src
-  Other-Modules:     RT.RT
+  Other-Modules:     RT.RT Constraint.Checker Editor.Editor Jigsaw.Jigsaw Jigsaw.JigsawModel Simulation.Simulation Simulation.SimulationModel Util.Constraints Util.KobbeComponents Util.Tree Util.TreeGenerator Util.Util
   extensions:        DoAndIfThenElse

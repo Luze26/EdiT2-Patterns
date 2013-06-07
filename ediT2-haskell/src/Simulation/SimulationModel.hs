@@ -1,3 +1,4 @@
+-- | Module for data structure needed by Simulation.
 module Simulation.SimulationModel where
 
 
