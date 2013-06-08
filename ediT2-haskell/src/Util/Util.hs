@@ -254,7 +254,8 @@ repartition2 nbP splits
 
 
 
--- | 'sumTriplets', sum a list of triplet. 'sumTriplet' [(1,2,4),(-1,0,5)] => (0,2,9). 
+-- | 'sumTriplets', sum a list of triplet.
+-- > sumTriplet [(1,2,4),(-1,0,5)] == (0,2,9). 
 sumTriplets :: Num a => [(a,a,a)] -- ^ Triplets.
 	-> (a,a,a) -- ^ The sum.
 sumTriplets [] = (0,0,0)
@@ -264,7 +265,8 @@ sumTriplets ((x,y,z):ts) = (x+x', y+y', z+z')
 
 
 
--- | 'sumList', do the sum of 2 lists. Ex : 'sumList' [1,2] [2,3,4] => [3,5,4]
+-- | 'sumList', do the sum of 2 lists.
+-- > sumList [1,2] [2,3,4] == [3,5,4]
 sumList :: Num a => [a] -> [a] -> [a]
 sumList [] [] = []
 sumList (x:xs) [] = x : sumList xs []

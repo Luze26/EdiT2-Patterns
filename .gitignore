@@ -5,6 +5,7 @@
 *.sh
 ediT2-haskell/src/RT/RT
 ediT2-haskell/src/Jigsaw/Jigsaw
+ediT2-haskell/src/Simulation/Simulation
 ediT2-haskell/src/Constraints/Checker
 ediT2-haskell/dist/build/
 ediT2-haskell/dist/package.conf.inplace
