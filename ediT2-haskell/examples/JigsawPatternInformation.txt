@@ -1,2 +1,2 @@
-"/home/zang/Dev/Haskell/Stage/out/jjjig.t2"
-Info { objects = ([("Initial","phase de travail initiale"),("Expert","phase de travail expert"),("Jigsaw","phase de travail jigsaw")],[],  [("etu1",""), ("etu2",""), ("etu3",""), ("etu4","")], [("r1",""),("r5","")], []), themes = [Theme{name="t1", resources = ["r1"], nbExpert=1, lowerMargin = 0, upperMargin = 0, nbResources = 1},Theme{name="t2", resources = ["r5"], nbExpert=3, lowerMargin = 1, upperMargin = 1, nbResources = 1}], nbPPG = 2, above = 0, below = 1}
+"/home/zang/Dev/Haskell/Stage/out/jig.t2"
+Info { objects = ([("Initial","phase de travail initiale"),("Expert","phase de travail expert"),("Jigsaw","phase de travail jigsaw")],[],  [("etu1",""), ("etu2",""), ("etu3",""), ("etu4","")], [], []), themes = [Theme{name="t1", resources = [], nbExpert=2, lowerMargin = 1, upperMargin = 0, nbResources = 0}], nbPPG = 2, above = 0, below = 0}

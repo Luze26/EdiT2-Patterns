@@ -33,7 +33,7 @@ run (fileInfo:_) = do
 	text <- readFile fileInfo -- Read the file past in argument
 	let (file, info) = readText text (\x -> read x :: Info) -- Extract information from the text. file = output file. info = information.
 	let (lvls, objects) = generateLevels info
-	if infoNbSecEditor info + 1 > (length $ infoParticipants info)
+	if infoNbSecEditor info + 1 <= (length $ infoParticipants info)
 	then writeT2 file ["Topic","Editor","Section","Editor2"] (generate lvls) (showObjects objects 1) 2 -- Write a file, with the generated tree and the pattern object.
 	else writeT2Err file [NotPossible $ "Not enough participants to have " ++ show (infoNbSecEditor info) ++ " editors per section."]
 

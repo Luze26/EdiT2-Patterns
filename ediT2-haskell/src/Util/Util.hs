@@ -237,7 +237,26 @@ repartitionUniform nbP n a b m
 
 
 
--- 'repartition2Multiple', give a list of size depending of split information, for the best repartition. The list of plits can be done multiple of times.
+-- | 'allRepartition', tries to create a repartion with less variations possible.
+allRepartition :: Int -- ^ Number to split.
+	-> [Int] -- ^ Range.
+	-> [Int] -- ^ Range.
+	-> (Bool, [[Int]]) -- ^ If a repartition is possible then it returns (True, repartition) else (False, []).
+allRepartition _ _ [] = (False, [])
+allRepartition nb rangee (x:xs)
+	| newNb > 0 = (ok, (if ok1 then map (x :) below else []) ++ (if ok2 then after else []))
+	| newNb == 0 = (True, [[x]])
+	| otherwise = (False, [])
+	where
+		newNb = nb - x
+		(ok1,below) = allRepartition newNb rangee rangee
+		(ok2,after) = allRepartition nb rangee xs
+		ok = ok1 || ok2
+
+
+
+
+-- 'repartition2Multiple', give a list of size depending of split information, for the best repartition. The list of splits can be done multiple of times.
 repartition2Multiple :: Int -- ^ Number to split.
 	-> [(Int, Int, Int)] -- ^ List of splits with for each split : the size wanted, the above margin and the below margin.
 	-> Possible [[Int]] -- ^ Possible size repartition, list of list of splits.

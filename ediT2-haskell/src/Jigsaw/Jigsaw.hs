@@ -145,9 +145,7 @@ createParticipantsExpert'' :: [M.Theme] -- ^ Themes.
 createParticipantsExpert'' [] _ = []
 createParticipantsExpert'' themes ps = splitList ps repart
 	where
-		repart = case repartition2 (length ps) themesInfo of
-			Possible list -> list
-			NotPossible _ -> []
+		repart = possibleToList $ repartition2 (length ps) themesInfo
 		themesInfo = map (\t -> (M.nbExpert t, M.upperMargin t, M.lowerMargin t))themes
 
 
@@ -184,6 +182,7 @@ createResourcesInitial' :: [Int] -- ^ Number of groups for each theme.
 	-> [[Resource]] -- ^ List of resources for each theme.
 	-> [[Resource]] -- ^ List of resources duplicated for each theme by the number of initial groups for the theme.
 createResourcesInitial' [] _ = []
+createResourcesInitial' _ [] = []
 createResourcesInitial' (x:xs) (r:rs) = replicate x r ++ createResourcesInitial' xs rs
 
 

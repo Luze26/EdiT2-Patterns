@@ -17,8 +17,7 @@ data Info =
 		nbLvl :: Int, -- ^ Number of levels for the pyramid.
 		nbPPG :: Int, -- ^ Number of participants per group preferred.
 		above :: Int,
-		below :: Int,
-		nbG :: Int -- ^ Number of groups
+		below :: Int
 	} deriving (Read)
 
 
@@ -33,7 +32,7 @@ run (fileInfo:_) = do
 	case repart of
 		Possible _ -> do
 			let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
-			writeT2 file ["Activity","Group","Resource","Participant"] (generate lvls) (showObjects patternObjects) -- Write a file, with the generated tree and the pattern object.
+			writeT2 file ["Activity","Group","Resource","Participant"] (generate lvls) (showObjects patternObjects 1) 3 -- Write a file, with the generated tree and the pattern object.
 		NotPossible _ -> writeT2Err file [NotPossible "Error"]
 
 
@@ -41,22 +40,15 @@ run (fileInfo:_) = do
 
 -- | 'generateLevels', generatee the levels for the tree.
 generateLevels :: Info -- ^ Information for the pattern.
-	-> ([Level], PatternObjects) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
-generateLevels info = (lvls, (activityObjects, map (\g -> (g,g)) groups, partObj, resObj, roleObjects))
+	-> ([Level], PatternObjectsList) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
+generateLevels info = (lvls, [activityObjects, map (\g -> (g,g)) groups, partObj, resObj, roleObjects])
 	where
 		lvls = [generateActivityLvl nbLvls] -- [Level], levels.
 		nbLvls = nbLvl info
-		
-		groupLvl = generateGroupLvl nbResources groups -- The level for the group notion.
-		resources = resourcesNames resObj -- Resources names.
-		activityObjects = [("Introduction", ""), ("Learning", "")] -- Activity object for the pattern object.
-		roleObjects = [("Teacher", ""), ("Student", "")] -- Role object for the pattern object.
-		groups = createGroups $ length repart -- Groups created for the second activity (Learning).
-		repart = possibleToList $ repartitionParticipant (length participants) (nbPPG info) (above info) (below info) (uniform info) -- Reparition of the participants, for groups in the Learning activity.
-		participants = participantsLogins partObj -- Participants logins.
-		nbResources = length resources -- Number of resources.
-		(_,_,partObj,resObj,_) = objects info -- Pattern object partially filled, given by the information file.
-
+		nbParticipants = length partObj
+		activityObjects = [ ("Level " ++ show i, "") | i <- [1..nbLvls]]
+		repart = possibleToList $ repartition  nbParticipants (nbPPG info) (above info) (below info)
+		(_,_,partObj,_,_) = objects info -- Pattern object partially filled, given by the information file.
 
 
 
@@ -67,6 +59,15 @@ generateActivityLvl nbLvls = ("Activity", [ [["Level " ++ show i]] | i <- [1..nb
 
 
 
+
+-- | 'generateGroupLvl', generate the group level.
+generateGroupLvl :: Int -- ^ Number of passages (= number of resources).
+	-> [String] -- ^ List of groups for the learning activity.
+	-> Level -- ^ The group's level.
+generateGroupLvl nb gs = ("Group", [[]] : replicate nb (map (: []) gs)) -- A "fake" node is needed for the first activity where there isn't any groups.
+
+
+
 -- | 'generateResourceLvl', generate the resource level.
 generateResourceLvl :: [Resource] -- ^ List of resources corresponding to passages.
 	-> Level -- ^ The resource's level.
@@ -74,8 +75,3 @@ generateResourceLvl res = ("Resource", [[[]], map (: []) res]) -- A "fake" node 
 
 
 
--- | 'generateGroupLvl', generate the group level.
-generateGroupLvl :: Int -- ^ Number of passages (= number of resources).
-	-> [String] -- ^ List of groups for the learning activity.
-	-> Level -- ^ The group's level.
-generateGroupLvl nb gs = ("Group", [[]] : replicate nb (map (: []) gs)) -- A "fake" node is needed for the first activity where there isn't any groups.
