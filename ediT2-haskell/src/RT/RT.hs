@@ -33,15 +33,15 @@ run (fileInfo:_) = do
 	case repart of
 		Possible _ -> do
 			let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
-			writeT2 file ["Activity","Resource","Group","Role","Participant"] (generate lvls) (showObjects patternObjects) -- Write a file, with the generated tree and the pattern object.
+			writeT2 file ["Activity","Resource","Group","Role","Participant"] (generate lvls) (showObjects patternObjects 1) 3 -- Write a file, with the generated tree and the pattern object.
 		NotPossible _ -> writeT2Err file [NotPossible "Can't do a good repartiton of participants for the learning activity."]
 
 
 
 -- | 'generateLevels', generatee the levels for the tree.
 generateLevels :: Info -- ^ Information for the pattern.
-	-> ([Level], PatternObjects) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
-generateLevels info = (lvls, (activityObjects, map (\g -> (g,g)) groups, partObj, resObj, roleObjects))
+	-> ([Level], PatternObjectsList) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
+generateLevels info = (lvls, [activityObjects, resObj, map (\g -> (g,g)) groups, roleObjects, partObj])
 	where
 		lvls = [generateActivityLvl, generateResourceLvl resources, groupLvl, generateRoleLvl $ (*) nbResources $ length groups,
 			generateParticipantLvl participants repart nbResources] -- [Level], levels.

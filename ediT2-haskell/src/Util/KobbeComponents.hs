@@ -31,10 +31,10 @@ type ActivityObjects = [(Name,Description)]
 type GroupObjects = [(Name,Description)]
 
 -- | 'ParticipantObjects'
-type ParticipantObjects = [(Login,Firstname,Surname,Email,City,Country)]
+type ParticipantObjects = [(Name,Description)]
 
 -- | 'ResourceObjects'
-type ResourceObjects = [(Name,Description,MoodleTableName,MoodleResourceID)]
+type ResourceObjects = [(Name,Description)]
 
 -- | 'RoleObjects'
 type RoleObjects = [(Name,Description)]
@@ -42,18 +42,11 @@ type RoleObjects = [(Name,Description)]
 -- | 'TeacherNotes'
 type TeacherNotes = [String]
 
+type PatternObjectsList = [[(Name,Description)]]
 
 -- information
 type Name = String
 type Description = String
-type Login = String
-type Firstname = String
-type Surname = String
-type Email = String
-type Country = String
-type City = String
-type MoodleTableName = String
-type MoodleResourceID = String
 
 
 
@@ -62,14 +55,14 @@ type MoodleResourceID = String
 -- | 'participantsLogins', return the list of participants logins.
 participantsLogins :: ParticipantObjects -- ^ Participants objects.
 	-> [Participant] -- ^ Participants logins.
-participantsLogins = map (\(login,_,_,_,_,_) -> login)
+participantsLogins = map fst
 
 
 
 -- | 'resourcesNames', returns the list of resources names.
 resourcesNames :: ResourceObjects -- ^ Resources objects.
 	-> [Resource] -- ^ Resources names.
-resourcesNames = map (\(name,_,_,_) -> name)
+resourcesNames = map fst
 
 
 
@@ -106,11 +99,3 @@ resourcesObjects (_,_,_,o,_) = o
 -- | 'rolesObjects', return the roles objects from a pattern object.
 rolesObjects :: PatternObjects -> RoleObjects
 rolesObjects (_,_,_,_,o) = o
-
-
-
--- 'showObjects', convert pattern objects in a string for .t2
-showObjects :: PatternObjects -- ^ Pattern objects.
-	-> String -- ^ Pattern objects in .t2 format.
-showObjects (a,g,p,r,ro) = "activityObjectsList = " ++ show a ++ "\ngroupObjectsList = " ++ show g ++
-	"\nparticipantObjectsList = " ++ show p ++ "\nresourceObjectsList = " ++ show r ++ "\nroleObjectsList = " ++ show ro

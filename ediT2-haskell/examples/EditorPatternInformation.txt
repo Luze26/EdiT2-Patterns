@@ -1,2 +1,2 @@
 "/home/zang/Dev/Haskell/Stage/out/editor.t2"
-Info { infoParticipants =  [("etu1","","","","",""), ("etu2","","","","",""), ("etu3","","","","",""), ("etu4","","","","","")], infoNbSec = 2, infoNbSecEditor = 1}
+Info { infoParticipants =  [("etu1",""), ("etu2",""), ("etu3",""), ("etu4","")], infoNbSec = 2, infoNbSecEditor = 1}

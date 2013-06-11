@@ -60,9 +60,11 @@ writeT2 :: String -- ^ File path.
 	-> [String] -- ^ List of notions names.
 	-> NTree Cell -- ^ The tree.
 	-> String -- ^ Pattern objects.
+	-> Int -- ^ Scénario type, 1 = free notions, 2 = MediaWiki's notions, 3 = Kobbe's notions.
 	-> IO()
-writeT2 file notions tree objects = writeFile file $ show notions ++ "\n\nscript=" ++
-	showTree tree ++ "\n\n" ++ objects ++ "\n\nteacherNotes = " ++ show (replicate (nbLeaf tree) "")
+writeT2 file notions tree objects typ = writeFile file $ show notions ++ "\n\nscript = " ++
+	showTree tree ++ "\n\n" ++ errors [] ++ "\nscenarioType = " ++ show typ ++ "\n\nscenarioStructureName = a\n\n" ++ 
+	objects ++ "\nteacherNotes = " ++ show (replicate (nbLeaf tree) "")
 
 
 
@@ -74,10 +76,19 @@ writeT2Err file errs = writeFile file $ errors errs
 
 
 
+-- | 'showObjects', show objects for .t2 file
+showObjects :: [[(String,String)]] -- ^ Lists of objects in the correct order.
+	-> Int -- ^ Numbering.
+	-> String -- ^ String representing objetcs.
+showObjects [] _ = ""
+showObjects (o:objects) i = "notion" ++ show i ++ "ObjectsList = " ++ show o ++ "\n" ++ showObjects objects (i+1)
+
+
+
 -- | 'errors', convert errors in a .t2 format.
 errors :: [Possible a] -- ^ Errors.
 	-> String -- ^ Errors in .t2.
-errors err = "Error=[" ++ errors' err True ++ "]\n"
+errors err = "error = [" ++ errors' err True ++ "]\n"
 
 
 
@@ -102,7 +113,7 @@ readHeader content = head $ lines content
 -- | 'stripHeader', strip the header of .t2 content.
 stripHeader :: String -- ^ .t2 content.
 	-> String -- ^ .t2 content without the head (notions names + "script=").
-stripHeader text = drop 7 $ unlines $ drop 2 $ lines text
+stripHeader text = drop 9 $ unlines $ drop 2 $ lines text
 
 
 

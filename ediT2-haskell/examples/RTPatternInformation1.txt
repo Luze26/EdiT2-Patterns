@@ -1,2 +1,2 @@
 "/home/zang/Dev/Haskell/Stage/out/gg.t2"
-Info { objects = ([],[],[("a","","","","",""),("b","","","","",""),("c","","","","",""),("d","","","","","")],[("p1", "","",""),("Pé", "","","")],[]),nbPPG = 2,above = 0,below = 0, uniform = True}
+Info { objects = ([],[],[("b",""),("c",""),("d","")],[("p1", ""),("Pé", "")],[]),nbPPG = 2,above = 0,below = 1, uniform = True}

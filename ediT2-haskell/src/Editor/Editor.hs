@@ -7,7 +7,7 @@ module Editor.Editor (
 import Util.Util
 import Util.Tree
 import Util.TreeGenerator
-import Util.KobbeComponents (Participant, ParticipantObjects, Login, Firstname, Surname, Email, City, Country, participantsLogins)
+import Util.KobbeComponents (Participant, ParticipantObjects, Name, Description, participantsLogins, PatternObjectsList)
 
 
 type Editor = String
@@ -32,19 +32,26 @@ run [] = putStrLn "Not enough arguments for editor.\nUsage: ediT2-haskell Editor
 run (fileInfo:_) = do
 	text <- readFile fileInfo -- Read the file past in argument
 	let (file, info) = readText text (\x -> read x :: Info) -- Extract information from the text. file = output file. info = information.
-	writeT2 file ["Topic","Editor","Section","Editor2"] (generate $ generateLevels info) "" -- Write a file, with the generated tree and the pattern object.
+	let (lvls, objects) = generateLevels info
+	if infoNbSecEditor info + 1 > (length $ infoParticipants info)
+	then writeT2 file ["Topic","Editor","Section","Editor2"] (generate lvls) (showObjects objects 1) 2 -- Write a file, with the generated tree and the pattern object.
+	else writeT2Err file [NotPossible $ "Not enough participants to have " ++ show (infoNbSecEditor info) ++ " editors per section."]
 
 
 
 -- | 'generateLevels', generate levels of the tree.
 generateLevels :: Info -- ^ Pattern info.
-	-> [Level] -- ^ Levels.
-generateLevels info = [generateLvlTopics participants, generateLvlEditor participants,
-	generateLvlSection participants nbSec, generateLvlEditor2 participants nbSecEditor nbSec]
+	-> ([Level], PatternObjectsList) -- ^ Levels and pattern objects.
+generateLevels info = ([generateLvlTopics participants, generateLvlEditor participants,
+	sectionLvl, generateLvlEditor2 participants nbSecEditor nbSec],
+	[topicsObj,infoParticipants info, sectionsObj, infoParticipants info])
 	where
 		participants = participantsLogins $ infoParticipants info
 		nbSec = infoNbSec info
 		nbSecEditor = infoNbSecEditor info
+		topicsObj = [ ("Topic" ++ show i, "") | i <-[1..length participants] ]
+		sectionsObj = map (\x -> (x,"")) $ concat $ concat $ snd sectionLvl
+		sectionLvl = generateLvlSection participants nbSec
 
 
 
@@ -57,7 +64,7 @@ generateLvlTopics participants = ("Topic", generateLvlTopics' participants 1)
 
 -- | 'generateLvlTopics'', cf 'generateLvlTopics'.
 generateLvlTopics' :: [Participant] -- ^ Participants.
-	-> Int -- ^ Numbring of the topic.
+	-> Int -- ^ Numbering of the topic.
 	-> [[[Topic]]] -- ^ Topics.
 generateLvlTopics' [] _ = []
 generateLvlTopics' (_:ts) i = [["Topic" ++ show i]] : generateLvlTopics' ts (i+1)

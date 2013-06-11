@@ -18,17 +18,18 @@ run [] = putStrLn "Not enough arguments for simulation.\nUsage: ediT2-haskell Si
 run (fileInfo:_) = do
 	text <- readFile fileInfo -- Read the file past in argument
 	let (file, info) = readText text (\x -> read x :: Info) -- Extract information from the text. file = output file. info = information.
-	let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
 	let repart = repartitionGroups (length $ K.participantsObjects $ objects info) $ roles info -- Repartition by groups and roles for the simulation group activity.
 	case repart of
-		Possible _ -> writeT2 file ["Activity","Group","Role","Participant","Resource"] (generate lvls) (K.showObjects patternObjects)
+		Possible _ -> do
+			let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
+			writeT2 file ["Activity","Group","Role","Participant","Resource"] (generate lvls) (showObjects patternObjects 1) 3
 		NotPossible _ -> writeT2Err file [NotPossible "Can't do a good repartition in groups."]
 
 
 
 -- | 'generateLevels', generatee the levels for the tree.
 generateLevels :: Info -- ^ Information for the pattern.
-	-> ([Level], K.PatternObjects) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
+	-> ([Level], K.PatternObjectsList) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
 generateLevels info = (lvls, patternObject)
 	where
 		lvls = [generateActivityLvl, generateGroupLvl groups, generateRoleLvl nbGroups rolesNames, generateParticipantLvl participants repart,
@@ -37,7 +38,7 @@ generateLevels info = (lvls, patternObject)
 		nbGroups = length repart -- Number of groups for the simulation group activity.
 		rolesNames = K.rolesNames rolObj -- Names of roles.
 		repart = possibleToList $ repartitionGroups (length partObj) $ roles info -- Repartition by groups and roles for the simulation group activity.
-		patternObject = (activityObject, map (\g -> (g,"")) groups, partObj, resObj, rolObj) -- pattern object resulting of the generation.
+		patternObject = [activityObject, map (\g -> (g,"")) groups, rolObj, partObj, resObj] -- pattern object resulting of the generation.
 		activityObject = [("Introduction",""),("Roles",""),("Groups simulation",""),("Simulation",""),("Share","")]
 		participants = K.participantsLogins partObj -- Participants names.
 		(_,_,partObj,resObj,rolObj) = objects info -- Pattern object given in information.

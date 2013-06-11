@@ -20,7 +20,7 @@ run (fileInfo:_) = do
 	let noPoss = notPossible $ repartitionJigsaw (participantsList info) (M.themes info) : repartitionInitial info
 	if null noPoss
 		then do let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
-			writeT2 file ["Activity","Group","Participant","Resource"] (generate lvls) (showObjects patternObjects) -- Write a fil
+			writeT2 file ["Activity","Group","Participant","Resource"] (generate lvls) (showObjects patternObjects 1) 3 -- Write a fil
 		else writeT2Err file noPoss
 
 
@@ -34,11 +34,11 @@ notPossible = foldl (\acc x -> case x of NotPossible msg -> NotPossible msg : ac
 
 -- | 'generateLevels', generatee the levels of the tree.
 generateLevels :: M.Info -- ^ Pattern information.
-	-> ([Level], PatternObjects) -- ^ Levels and pattern objects generated.
+	-> ([Level], PatternObjectsList) -- ^ Levels and pattern objects generated.
 generateLevels info = (lvls, patternObjects')
 	where
 		lvls = [generateActivitiesLvl, generateGroupsLvl info, generateParticipantsLvl info, generateResourcesLvl info]
-		patternObjects' = (actObj,groupObj,partObj,resObj,rolObj)
+		patternObjects' = [actObj,groupObj,partObj,resObj,rolObj]
 		groupObj = groupObjectsList info
 		(actObj,_,partObj,resObj,rolObj) = M.objects info
 
