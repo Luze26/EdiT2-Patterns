@@ -8,7 +8,6 @@ module Constraint.Checker
 import Util.Tree
 import Util.Util ( readTree, readConstraints )
 import Util.Constraints
-import System.Environment( getArgs )
 import Data.List( intersect )
 
 

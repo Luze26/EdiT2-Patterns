@@ -1,12 +1,12 @@
 -- | Module to generate .t2 file for the pattern Pyramid.
-module Pyramid (
+module Pyramid.Pyramid (
 	run
 ) where
 
 
 import Util.Util
 import Util.TreeGenerator
-import System.Environment( getArgs )
+import Util.KobbeComponents
 
 
 
@@ -17,18 +17,19 @@ data Info =
 		nbLvl :: Int, -- ^ Number of levels for the pyramid.
 		nbPPG :: Int, -- ^ Number of participants per group preferred.
 		above :: Int,
-		below :: Int
+		below :: Int,
+		output :: String
 	} deriving (Read)
 
 
 
 -- | 'run', entry point. Expect a file path in argument pointing to a file containing information needed.
-run :: [String] -> String
+run :: [String] -> IO()
 run [] = putStrLn "Not enough arguments for pyramid.\nUsage: ediT2-haskell Pyramid <information file>"
 run (fileInfo:_) = do
 	text <- readFile fileInfo -- Read the file past in argument
 	let (file, info) = readText text (\x -> read x :: Info) -- Extract information from the text. file = output file. info = information.
-	let repart = Possible []
+	let repart = repartition  (length $ participantsObjects $ objects info) (nbPPG info) (above info) (below info) True
 	case repart of
 		Possible _ -> do
 			let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
@@ -41,13 +42,13 @@ run (fileInfo:_) = do
 -- | 'generateLevels', generatee the levels for the tree.
 generateLevels :: Info -- ^ Information for the pattern.
 	-> ([Level], PatternObjectsList) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
-generateLevels info = (lvls, [activityObjects, map (\g -> (g,g)) groups, partObj, resObj, roleObjects])
+generateLevels info = (lvls, [activityObjects, [], [], [], []])
 	where
-		lvls = [generateActivityLvl nbLvls] -- [Level], levels.
+		lvls = [generateActivityLvl nbLvls, generateGroupLvl info repart] -- [Level], levels.
 		nbLvls = nbLvl info
 		nbParticipants = length partObj
 		activityObjects = [ ("Level " ++ show i, "") | i <- [1..nbLvls]]
-		repart = possibleToList $ repartition  nbParticipants (nbPPG info) (above info) (below info)
+		repart = possibleToList $ repartition  nbParticipants (nbPPG info) (above info) (below info) True
 		(_,_,partObj,_,_) = objects info -- Pattern object partially filled, given by the information file.
 
 
@@ -55,23 +56,61 @@ generateLevels info = (lvls, [activityObjects, map (\g -> (g,g)) groups, partObj
 -- | 'generateActivityLvl', generate the activity level.
 generateActivityLvl :: Int -- ^ Number of pyramid's levels.
 	-> Level -- ^ The activity level.
-generateActivityLvl nbLvls = ("Activity", [ [["Level " ++ show i]] | i <- [1..nb] ])
+generateActivityLvl nbLvls = ("Activity", [ [["Level " ++ show i]] | i <- [1..nbLvls] ])
 
 
 
 
 -- | 'generateGroupLvl', generate the group level.
-generateGroupLvl :: Int -- ^ Number of passages (= number of resources).
-	-> [String] -- ^ List of groups for the learning activity.
+generateGroupLvl :: Info -- ^ Pattern's information.
+	-> [Int] -- ^ Repartition.
 	-> Level -- ^ The group's level.
-generateGroupLvl nb gs = ("Group", [[]] : replicate nb (map (: []) gs)) -- A "fake" node is needed for the first activity where there isn't any groups.
+generateGroupLvl info repart = ("Group", map (map (: [])) $ createGroups (nbGroupPerLvl (nbLvl info) (length repart)) [] True)
+
 
 
 
 -- | 'generateResourceLvl', generate the resource level.
-generateResourceLvl :: [Resource] -- ^ List of resources corresponding to passages.
+generateResourceLvl :: Info -- ^ Pattern's information.
 	-> Level -- ^ The resource's level.
-generateResourceLvl res = ("Resource", [[[]], map (: []) res]) -- A "fake" node is needed for the first activity where there isn't any resources.
+generateResourceLvl info = concat $ createGroups (nbGroupPerLvl (nbLvl info) (length repart)) [] True) : resources
+	where
+		resources = resourcesNames $ resourcesObjects $ patternObjects info
 
 
 
+createResource :: [String] -- ^ Groups ids.
+	-> [String] --
+-- | 'createGroups', create groups for each level.
+createGroups :: [Int] -- ^ Number of groups per level.
+	-> [String] -- ^ Id of last groups.
+	-> Bool -- ^ 'True', if first call.
+	-> [[String]] -- ^ Groups.
+createGroups [] _ _ = []
+createGroups (nb:nbs) ids first = map ("Group " ++) newIds :createGroups nbs newIds False
+	where
+		newIds
+			| not first = createGroups' (div (length ids) nb) ids
+			| otherwise = map (show) [1..nb]
+
+
+
+-- | 'createGroups'', create groups for a given level.
+createGroups' :: Int -- ^ Size of fusion.
+	-> [String] -- ^ Groups of the level below.
+	-> [String] -- ^ Groups.
+createGroups' _ [] = []
+createGroups' nb ids = init (concatMap (++ "+") (take nb ids)) : createGroups' nb (drop nb ids)
+
+
+
+-- | 'nbGroupPerLvl', return the number of group wanted per level.
+nbGroupPerLvl :: Int -- ^ Number of levels.
+	-> Int -- ^ Number of groups for the first level.
+	-> [Int] -- ^ Number of groups for each level.
+nbGroupPerLvl nbLvls nbGroups
+	| nbLvls > 2 && nbLvls >= nbGroups = nbGroups : nbGroupPerLvl (nbLvls-1) nbGroups
+	| nbLvls == 1 = [1]
+	| otherwise = newNbGroups : nbGroupPerLvl (nbLvls-1) newNbGroups
+	where
+		newNbGroups = div nbGroups (div nbGroups nbLvls)

@@ -1,0 +1,2 @@
+"/home/zang/Dev/Haskell/Stage/out/pyra.t2"
+Info { objects = ([],[], [("a",""),("db",""),("c",""),("d","")],[],[("r1",""),("r2","")]), nbLvl = 3, nbPPG = 3, above = 0, below = 2}
