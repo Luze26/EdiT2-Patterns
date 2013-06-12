@@ -1,55 +1,14 @@
 -- | Module containing the data structure for the tree and useful functions on tree.
 module Util.Tree
 ( 
-	CellLabel,
-	CellNumbering,
-	CellFatherNumbering,
-	CellComponents,
-	Cell,
 	NTree (..),
 	showTree,
 	node,
 	subtrees,
-	cellComponents,
-	nbLeaf
+	nbLeaf,
+	normalize
 ) where
 
-
--- ///////////////////////////////////// Cell Module /////////////////////////////////////////////
-
--- | Name of the column (notion), in which the cell is.
-type CellLabel = String
-
--- | The number of the cell (differents cells can have the same number across the tree).
-type CellNumbering = String
-
--- | The number of the father, 'null' for the root node.
-type CellFatherNumbering = String
-
--- | The component identification array.
-type CellComponents = [String]
-
--- | 'Cell' represents a node
-type Cell = (CellLabel,CellNumbering,CellFatherNumbering,CellComponents)
-
-
-
--- | 'cellComponents', return the components of a cell.
-cellComponents :: Cell -- ^ The cell.
-	-> CellComponents -- ^ components of the cell.
-cellComponents (_,_,_,components) = components
-
-
-
--- | 'mergeCell', merge cells
-mergeCell :: [Cell] -- ^ cells to merge
-	-> Cell -- ^ cells merged
-mergeCell [] = ("","","","",[])
-mergeCell ((x,y,z,contents):cells) = (x,y,z, foldl (++) contents $ map (cellComponents) cells)
-
-
-
--- ///////////////////////////////////// Tree Module /////////////////////////////////////////////
 
 data NTree a =
 	-- | Data structure representing a tree. 'Node a' for the node and '[NTree a]' for the subtrees
@@ -72,15 +31,15 @@ subtrees (Node _ strees) = strees
 
 
 -- | 'replaceSubtrees', replace subtrees of a NTree.
-subtrees :: NTree a -- ^ The tree.
+replaceSubtrees :: NTree a -- ^ The tree.
 	-> [NTree a] -- ^ New subtrees.
-	-> [NTree a] -- ^ Subtrees of the tree.
-subtrees (Node cell _) sbtrees = Node cell sbtrees
+	-> NTree a -- ^ New tree.
+replaceSubtrees (Node cell _) = Node cell
 
 
 
 -- | 'nbLeaf', return the number of leaves for the given tree
-nbLeaf :: (Eq a) => NTree a -- ^ The tree.
+nbLeaf :: NTree a -- ^ The tree.
 	-> Int -- ^ Number of leaves for the tree.
 nbLeaf tree
 	| null sbtrees = 1
@@ -128,7 +87,7 @@ showSubTrees tabs (s:sbtrees) = showTree' noComma tabs s ++ showSubTrees tabs sb
 mergeTrees :: [NTree a] -- ^ Subtrees to merge
 	-> ([a] -> a) -- ^ Merged root nodes
 	-> NTree a -- ^ Merged subtrees.
-mergeTrees sbtrees merger = Node (merger (map (node) sbtrees)) (subtrees $ head sbtrees)
+mergeTrees sbtrees merger = Node (merger (map node sbtrees)) (subtrees $ head sbtrees)
 
 
 
@@ -137,27 +96,57 @@ normalize :: NTree a -- ^ The tree.
 	-> (a -> a -> Bool) -- ^ Eq fonction.
 	-> ([a] -> a) -- ^ Merger.
 	-> NTree a	-- ^ Normalized tree.
-normalize tree eq merger = replaceSubtrees tree $ normalize' (subtrees tree) eq merger
+normalize tree eq merger = replaceSubtrees tree $ normalize' eq merger (subtrees tree)
 
 
 
 -- | 'normalize'', cf 'normalize'
-normalize' :: [NTree a] -- ^ Subtrees on the same level.
-	-> (a -> a -> Bool) -- ^ Eq fonction.
+normalize' :: (a -> a -> Bool) -- ^ Eq function.
 	-> ([a] -> a) -- ^ Merger.
+	-> [NTree a] -- ^ Subtrees on the same level.
 	-> [NTree a] -- ^ Normalized subtrees.
-normalize' [] _ = []
-normalize' trees@(t:ts) eq merger
-	| null $ subtrees t = mergeTrees trees merger
-	| otherwise = mergeTrees same : normalize' different eq merger
+normalize' _ _ [] = []
+normalize' eq merger trees@(t:ts)
+	| null $ subtrees t = [mergeTrees trees merger]
+	| otherwise = mergeTrees (x:same) merger : normalize' eq merger different
 	where
-		(same, different) = sameSubtrees t ts eq
+		(x:xs) = map (\tree -> replaceSubtrees tree (normalize' eq merger (subtrees tree))) trees
+		(same, different) = sameSubtrees x xs eq
 
 
 
-sameSubtrees :: NTree a -- ^ Subtrees of reference.
+-- | 'sameSubtrees', return a list of trees having the same subtree (similarity defined by the Eq function), and another list with differnts trees.
+sameSubtrees :: NTree a -- ^ Subtrees of reference, included in the first list.
 	->  [NTree a] -- ^ Subtrees on the same level.
-	-> (a -> a -> Bool) -- ^ Eq fonction.
-	-> ([NTree a], [NTree a])	-- ^ (Trees having an identical subtrees, a different Subtrees) from the reference subtree.
+	-> (a -> a -> Bool) -- ^ Eq function.
+	-> ([NTree a], [NTree a]) -- ^ (Trees having an identical subtrees, a different Subtrees) from the reference subtree.
 sameSubtrees _ [] _ = ([],[])
-sameSubtrees t trees eq = 
+sameSubtrees t (tree:trees) eq
+	| length sbt == length sbtree && nodesExists eq (map node sbt) (map node sbtree) = (tree:s, d)
+	| otherwise = (s, tree:d)
+	where
+		sbt =  subtrees t
+		sbtree = subtrees tree
+		(s,d) = sameSubtrees t trees eq
+
+
+
+nodesExists :: (a -> a -> Bool) -- ^ Eq function.
+	-> [a]
+	-> [a]
+	-> Bool
+nodesExists _ [] _ = True
+nodesExists eq (n:ns) nodes
+	| nodesExists' eq n nodes = nodesExists eq ns nodes
+	| otherwise = False
+
+
+
+nodesExists' :: (a -> a -> Bool) -- ^ Eq function.
+	-> a
+	-> [a]
+	-> Bool
+nodesExists' _ _ [] = False
+nodesExists' eq node (n:ns)
+	| eq node n = True
+	| otherwise = nodesExists' eq node ns

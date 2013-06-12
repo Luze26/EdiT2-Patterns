@@ -6,6 +6,7 @@ module Constraint.Checker
 
 
 import Util.Tree
+import Util.Cell
 import Util.Util ( readTree, readConstraints )
 import Util.Constraints
 import Data.List( intersect )

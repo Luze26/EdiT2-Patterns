@@ -44,9 +44,11 @@ generateLevels :: Info -- ^ Information for the pattern.
 	-> ([Level], PatternObjectsList) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
 generateLevels info = (lvls, [activityObjects, [], [], [], []])
 	where
-		lvls = [generateActivityLvl nbLvls, generateGroupLvl info repart] -- [Level], levels.
+		lvls = [generateActivityLvl nbLvls, generateGroupLvl info repart, generateResourceLvl info repart, generateParticipantLvl participants nbGroupPerLvls] -- [Level], levels.
 		nbLvls = nbLvl info
 		nbParticipants = length partObj
+		nbGroupPerLvls = nbGroupPerLvl nbLvls (length repart)
+		participants = participantsLogins partObj
 		activityObjects = [ ("Level " ++ show i, "") | i <- [1..nbLvls]]
 		repart = possibleToList $ repartition  nbParticipants (nbPPG info) (above info) (below info) True
 		(_,_,partObj,_,_) = objects info -- Pattern object partially filled, given by the information file.
@@ -72,15 +74,41 @@ generateGroupLvl info repart = ("Group", map (map (: [])) $ createGroups (nbGrou
 
 -- | 'generateResourceLvl', generate the resource level.
 generateResourceLvl :: Info -- ^ Pattern's information.
+	-> [Int] -- ^ Repartition.
 	-> Level -- ^ The resource's level.
-generateResourceLvl info = concat $ createGroups (nbGroupPerLvl (nbLvl info) (length repart)) [] True) : resources
+generateResourceLvl info repart = ("Resource", map (\g ->  [(g ++ "." ++ output info) : resources]) $
+	concat $ createGroups (nbGroupPerLvl (nbLvl info) (length repart)) [] True)
 	where
-		resources = resourcesNames $ resourcesObjects $ patternObjects info
+		resources = resourcesNames $ resourcesObjects $ objects info
 
 
 
-createResource :: [String] -- ^ Groups ids.
-	-> [String] --
+-- | 'generateParticipantLvl', generate the participant level.
+generateParticipantLvl :: [Participant] -- ^ Participants.
+	-> [Int] -- ^ Repartition.
+	-> Level -- ^ The participant's level.
+generateParticipantLvl participants repart = ("Participant", createParticipants participants repart)
+
+
+
+createParticipants :: [Participant] -- ^ Participants.
+	-> [Int] -- ^ Repartition.
+	-> [[[Participant]]]
+createParticipants _ [] = []
+createParticipants participants (l:lvls) = createParticipants' participants nb ++ createParticipants participants lvls
+	where
+		nb = div (length participants) l
+
+
+
+createParticipants' :: [Participant] -- ^ Participants.
+	-> Int -- ^ Size of groups.
+	-> [[[Participant]]]
+createParticipants' [] _ = []
+createParticipants' participants nb = [take nb participants] : createParticipants' (drop nb participants) nb
+
+
+
 -- | 'createGroups', create groups for each level.
 createGroups :: [Int] -- ^ Number of groups per level.
 	-> [String] -- ^ Id of last groups.
@@ -91,7 +119,7 @@ createGroups (nb:nbs) ids first = map ("Group " ++) newIds :createGroups nbs new
 	where
 		newIds
 			| not first = createGroups' (div (length ids) nb) ids
-			| otherwise = map (show) [1..nb]
+			| otherwise = map show [1..nb]
 
 
 

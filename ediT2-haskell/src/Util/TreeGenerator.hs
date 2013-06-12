@@ -8,7 +8,7 @@ module Util.TreeGenerator
 
 
 import Util.Tree
-
+import Util.Cell
 
 
 -- | Name of a level (= name of a column = label name).

@@ -3,7 +3,7 @@ module Util.Util where
 
 import Util.Tree
 import Util.Constraints
-
+import Util.Cell ( Cell )
 
 
 -- Error
@@ -56,14 +56,14 @@ createList n = show [ 'e' : show i | i <- [1..n]]
 -- Functions to write .t2 ///////////////////////////////////////////////////////////////////
 
 -- | 'writeT2', write the entire .t2 file.
-writeT2 :: String -- ^ File path.
+writeT2 :: (Show a) => String -- ^ File path.
 	-> [String] -- ^ List of notions names.
-	-> NTree Cell -- ^ The tree.
+	-> NTree a -- ^ The tree.
 	-> String -- ^ Pattern objects.
 	-> Int -- ^ Scénario type, 1 = free notions, 2 = MediaWiki's notions, 3 = Kobbe's notions.
 	-> IO()
 writeT2 file notions tree objects typ = writeFile file $ show notions ++ "\n\nscript = " ++
-	showTree tree ++ "\n\n" ++ errors [] ++ "\nscenarioType = " ++ show typ ++ "\n\nscenarioStructureName = a\n\n" ++ 
+	showTree tree ++ "\n\n" ++ errors [] ++ "\nscenarioType = " ++ show typ ++ "\n\nscenarioStructureName = Put here the scenario structure name.\n\n" ++ 
 	objects ++ "\nteacherNotes = " ++ show (replicate (nbLeaf tree) "")
 
 
