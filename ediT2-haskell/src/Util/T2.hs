@@ -19,7 +19,7 @@ data T2 =
 		t2Type :: Int,
 		t2StructName :: String,
 		t2TeacherNotes :: [String]
-	}
+	} deriving ( Show )
 
 
 

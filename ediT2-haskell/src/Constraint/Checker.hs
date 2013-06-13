@@ -12,7 +12,7 @@ import Util.Cell
 import Util.T2
 import Util.Util ( readT2, readConstraints )
 import Util.Constraints
-import Data.List( intersect )
+import Data.List( intersect, (\\) )
 import qualified Jigsaw.JigsawConstraints as Jigsaw
 
 
@@ -123,7 +123,7 @@ checkUnderWithErrors :: Identificators -- ^ Identificators, matching items that 
 checkUnderWithErrors _ [] = (True, [])
 checkUnderWithErrors itemss (t:trees)
 	| null faulty = checkUnderWithErrors itemss trees
-	| otherwise = let (_, faulty2) = checkUnderWithErrors itemss trees in (False, faulty `intersect` faulty2)
+ | otherwise = let (_, faulty2) = checkUnderWithErrors itemss trees in (False, faulty `intersect` faulty2 ++ (faulty \\ faulty2) ++ (faulty2 \\ faulty))
 	where
 		faulty = notContainedId itemss t
 

@@ -20,7 +20,7 @@ run (fileInfo:_) = do
 	let noPoss = notPossible $ repartitionJigsaw (participantsList info) (M.themes info) : repartitionInitial info
 	if null noPoss
 		then do let (lvls, patternObjects) = generateLevels info -- lvls = list of levels, patternObjects = pattern objects.
-			writeT2 file ["Activity","Group","Participant","Resource"] (generate lvls) (showObjects patternObjects 1) 3 -- Write a fil
+			writeT2 file ["Activity","Group","Participant","Resource"] (normalizeNTreeCell $ generate lvls) (showObjects patternObjects 1) 3 -- Write a fil
 		else writeT2Err file noPoss
 
 

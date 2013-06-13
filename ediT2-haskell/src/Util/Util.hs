@@ -3,7 +3,7 @@ module Util.Util where
 
 import Util.Tree
 import Util.Constraints
-import Util.Cell ( Cell )
+import Util.Cell ( Cell, mergeCell, eqCellsContent )
 import Util.T2
 import Data.List ( isPrefixOf )
 import Data.Char ( isDigit )
@@ -44,6 +44,11 @@ readText :: String -- ^ Text of the information file.
 readText text reader = (read $ head linees, reader (linees !! 1))
 	where
 		linees = lines text
+
+
+
+normalizeNTreeCell :: NTree Cell -> NTree Cell
+normalizeNTreeCell tree = normalize tree eqCellsContent mergeCell
 
 
 
@@ -158,8 +163,9 @@ readT2' t2 (l:ls)
 	| isPrefixOf "script" l = let (tree, linees) = stripFooter (dropWhile (/= 'N') l : ls) in readT2' (setT2Tree (read $ concat tree) t2) linees
 	| isPrefixOf "error" l = readT2' (setT2Errors (read (dropWhile (/= '[') l) :: [String]) t2) ls
 	| isPrefixOf "scenarioType" l = readT2' (setT2Type (read (dropWhile (not . isDigit) l) :: Int) t2) ls
-	| isPrefixOf "scenarioStructureName" l = readT2' (setT2Name (read (dropWhile (/= '=') l) :: String) t2) ls
+	| isPrefixOf "scenarioStructureName" l = readT2' (setT2Name (dropWhile (/= '=') l) t2) ls
 	| isPrefixOf "teacherNotes" l = readT2' (setT2Notes (read (dropWhile (/= '[') l) :: [String]) t2) ls
+	| otherwise = readT2' t2 ls
 	where
 		firstDrop = dropWhile (not . isDigit) l
 		object = read (dropWhile (/= '[') l) :: [(String, String)]
