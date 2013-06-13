@@ -1,11 +1,5 @@
 -- | Module defining constraints format.
-module Util.Constraints
-(
-	Cmd,
-	Cstr(..),
-	Identificator(..),
-	Identificators
-) where
+module Util.Constraints where
 
 
 
@@ -34,4 +28,23 @@ data Cstr =
 		items :: Identificators, -- ^ List of items.
 		command :: Cmd, -- ^ What to check.
 		wher ::  Identificator -- ^ Where to look.
-	} deriving (Show, Read)
+	}
+	| CstrPattern String String
+   deriving (Show, Read)
+
+
+
+data Result = Result (Bool, [String]) | CstrBis Cstr
+
+
+
+identificatorsToString :: Identificators -> [String]
+identificatorsToString = map identificatorToString
+
+
+
+identificatorToString :: Identificator -> String
+identificatorToString i = case i of
+	Label str -> "Notion " ++ str
+	Content str -> str
+	Identificator label str -> str ++ " of " ++ label

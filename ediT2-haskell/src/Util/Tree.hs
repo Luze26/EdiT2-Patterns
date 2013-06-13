@@ -12,7 +12,8 @@ module Util.Tree
 
 data NTree a =
 	-- | Data structure representing a tree. 'Node a' for the node and '[NTree a]' for the subtrees
-	Node a [NTree a] deriving (Eq,Ord,Show,Read)
+	Node a [NTree a] |
+	EmptyTree deriving (Eq,Ord,Show,Read)
 
 
 

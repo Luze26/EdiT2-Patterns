@@ -1,49 +1,64 @@
 -- | Module to verify constraints on .t2 file.
 module Constraint.Checker
 (
-	run
+	run,
+	check,
+	checkConstraint
 ) where
 
 
 import Util.Tree
 import Util.Cell
-import Util.Util ( readTree, readConstraints )
+import Util.T2
+import Util.Util ( readT2, readConstraints )
 import Util.Constraints
 import Data.List( intersect )
+import qualified Jigsaw.JigsawConstraints as Jigsaw
 
 
 
 -- | 'run', entry point. Expect a file path for the output, the .t2 input file and a file containing constraints to check.
 run :: [String] -> IO()
 run (output:input:cstrs:_) = do
-		tree <- readTree input
+		t2 <- readT2 input
 		constraints <- readConstraints cstrs
-		writeFile output $ check tree constraints
+		writeFile output $ check t2 constraints
 run _ = putStrLn "Not enough arguments for constraint.\nUsage: ediT2-haskell Constraint <output file> <.t2 file> <constraints file>"
 
 
 
 -- | 'check', check all the constraints.
-check :: NTree Cell -- ^ The tree.
+check :: T2 -- ^ The t2 file.
 	-> [Cstr] -- ^ Constraints to check.
 	-> String -- ^ Results.
 check _ [] = "" -- If there is no constraints.
-check tree (c:cstrs) = show  (checkConstraint tree c) ++ "\n" ++ check tree cstrs 
+check t2 (c:cstrs) = show  (checkConstraint t2 c) ++ "\n" ++ check t2 cstrs 
 
 
 
--- | 'checkConstraint', check if the constaint is consistent with the tree.
-checkConstraint :: NTree Cell -- ^ The tree.
+-- | 'checkConstraint', check if the constraint is consistent with the tree.
+checkConstraint :: T2 -- ^ The t2 file.
 	-> Cstr -- ^ The constraint.
-	-> Bool -- ^ 'True', if the tree respects the constraint, 'False' otherwise.
-checkConstraint tree cstr
-	| command cstr == "under" = checkUnder (items cstr) $ lookFor tree $ match (wher cstr)
-	| command cstr == "!under" = not $ checkUnder (items cstr) $ lookFor tree $ match (wher cstr)
-	| command cstr == "under?" = checkUnder' (items cstr) $ lookFor tree $ match (wher cstr)
-	| command cstr == "!under?" = checkNotUnder' (items cstr) $ lookFor tree $ match (wher cstr)
-	| command cstr == "under1" = checkUnder1 (items cstr) $ lookFor tree $ match (wher cstr)
-	| command cstr == "before" = checkBefore (items cstr) $ lookFor tree $ match (wher cstr)
-	| otherwise = False
+	-> (Bool, [String]) -- ^ 'True', if the tree respects the constraint, 'False' otherwise. And [String] for the errors.
+checkConstraint t2 cstr =
+	case cstr of
+		CstrPattern pattern constraint -> 
+			case pattern of
+				"Jigsaw" -> case Jigsaw.check constraint t2 of
+					CstrBis c -> checkConstraint t2 c
+					Result (ok, err) -> (ok, err)
+				_ -> (False, ["Unknow pattern: " ++ pattern])
+		Cstr { items = iteems, command = cmd, wher = wheer } ->
+			case cmd of
+				"under" -> let (ok, ids) = checkUnderWithErrors iteems $ lookFor tree $ match wheer in (ok, identificatorsToString ids)
+				"!under" -> (not $ checkUnder iteems $ lookFor tree $ match wheer,[])
+				"under?" -> (checkUnder' iteems $ lookFor tree $ match wheer, [])
+				"!under?" -> (checkNotUnder' iteems $ lookFor tree $ match wheer, [])
+				"under1" -> (checkUnder1 iteems $ lookFor tree $ match wheer, [])
+				"before" -> (checkBefore iteems $ lookFor tree $ match wheer, [])
+				_ -> (False, ["Unknow command: " ++ cmd])
+	where
+		tree = t2Tree t2
 
 
 
@@ -52,8 +67,8 @@ match :: Identificator -- ^ The identificator.
 	-> NTree Cell -- ^ The tree.
 	-> Bool -- ^ 'True', if the cell at the root of the tree matchs the identifcator. 'False', otherwise.
 match (Label l) (Node (label,_,_,_) _) = l == label
-match (Content c) (Node (_,_,_,content) _) = c == concat content
-match (Identificator l c) (Node (label,_,_,content) _) = c == concat content && l == label
+match (Content c) (Node (_,_,_,content) _) = c `elem` content
+match (Identificator l c) (Node (label,_,_,content) _) = c `elem` content && l == label
 
 
 
@@ -98,6 +113,19 @@ checkUnder _ [] = True
 checkUnder itemss (t:trees)
 	| null $ notContainedId itemss t = checkUnder itemss trees
 	| otherwise = False
+
+
+
+-- | 'checkUnderWithErrors', return 'True' if all the items in the first list are in all subtrees selected.
+checkUnderWithErrors :: Identificators -- ^ Identificators, matching items that must be in all subtrees.
+	-> [NTree Cell] -- ^ Subtrees.
+	-> (Bool, Identificators) -- ^ ('True', if all the items matched by the identificators are in all the subtrees, faulty identificators).
+checkUnderWithErrors _ [] = (True, [])
+checkUnderWithErrors itemss (t:trees)
+	| null faulty = checkUnderWithErrors itemss trees
+	| otherwise = let (_, faulty2) = checkUnderWithErrors itemss trees in (False, faulty `intersect` faulty2)
+	where
+		faulty = notContainedId itemss t
 
 
 
@@ -170,8 +198,8 @@ checkBefore :: Identificators -- ^ Identificators.
 	-> [NTree Cell] -- ^ Subtrees.
 	-> Bool -- 'True', if the first item is before the second item. 'False', otherwise.
 checkBefore _ [] = False
-checkBefore (_:[]) _ = False
-checkBefore items@(a:b:_) (tree:trees)
-	| match a tree = True
+checkBefore (_:[]) _ = True
+checkBefore items@(a:b:xs) ts@(tree:trees)
+	| match a tree = checkBefore (b:xs) ts
 	| match b tree = False
 	| otherwise = checkBefore items trees
