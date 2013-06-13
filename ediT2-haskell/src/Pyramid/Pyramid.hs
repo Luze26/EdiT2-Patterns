@@ -42,10 +42,13 @@ run (fileInfo:_) = do
 -- | 'generateLevels', generatee the levels for the tree.
 generateLevels :: Info -- ^ Information for the pattern.
 	-> ([Level], PatternObjectsList) -- ^ [Level] = list of levels, 'PatternObjects' = pattern objects.
-generateLevels info = (lvls, [activityObjects, [], [], [], []])
+generateLevels info = (lvls, [activityObjects, groupObj, partObj, resObj, []])
 	where
-		lvls = [generateActivityLvl nbLvls, generateGroupLvl info repart, generateResourceLvl info repart, generateParticipantLvl participants nbGroupPerLvls] -- [Level], levels.
+		lvls = [generateActivityLvl nbLvls, groupLvl, generateResourceLvl info repart, generateParticipantLvl participants nbGroupPerLvls] -- [Level], levels.
 		nbLvls = nbLvl info
+		groupObj = map (\x -> (x,"")) $ concat $ concat $ snd groupLvl
+		resObj = map (\x -> (drop 6 (fst x) ++ "." ++ output info, "")) groupObj
+		groupLvl = generateGroupLvl info repart
 		nbParticipants = length partObj
 		nbGroupPerLvls = nbGroupPerLvl nbLvls (length repart)
 		participants = participantsLogins partObj
