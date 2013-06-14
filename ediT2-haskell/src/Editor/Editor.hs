@@ -58,16 +58,16 @@ generateLevels info = ([generateLvlTopics participants, generateLvlEditor partic
 -- | 'generateLvlTopics', generate the topic level.
 generateLvlTopics :: [Participant] -- ^ Participants.
 	-> Level -- ^ Topic's level.
-generateLvlTopics participants = ("Topic", generateLvlTopics' participants 1)
+generateLvlTopics participants = ("Topic", [generateLvlTopics' participants 1])
 
 
 
 -- | 'generateLvlTopics'', cf 'generateLvlTopics'.
 generateLvlTopics' :: [Participant] -- ^ Participants.
 	-> Int -- ^ Numbering of the topic.
-	-> [[[Topic]]] -- ^ Topics.
+	-> [[Topic]] -- ^ Topics.
 generateLvlTopics' [] _ = []
-generateLvlTopics' (_:ts) i = [["Topic" ++ show i]] : generateLvlTopics' ts (i+1)
+generateLvlTopics' (_:ts) i = ["Topic" ++ show i] : generateLvlTopics' ts (i+1)
 
 
 

@@ -10,7 +10,6 @@ module Util.TreeGenerator
 import Util.Tree
 import Util.Cell
 
-
 -- | Name of a level (= name of a column = label name).
 type Name = String
 
@@ -24,39 +23,23 @@ type Level = (Name, [[[String]]])
 -- | 'generate', generate a tree given the levels.
 generate  :: [Level] -- ^ List of levels.
 	-> NTree Cell -- ^ The tree built from the levels.
-generate (l:lvls) = Node ("Root","1","null",[]) $ generate' l lvls "1" 1
+generate (l:lvls) = Node ("Root","1","null",[]) $ snd $ generateSubTree l lvls "1" 1
 
 
 
--- | 'generate'', generate a tree given the levels.
-generate' :: Level -- ^ Level treated.
+-- | 'generateSubTree', return a tuple with what it remains to treat for each level, and a list of subtrees.
+generateSubTree :: Level -- ^ Level treated.
 	-> [Level] -- ^ List of sublevels.
 	-> String -- ^ Father's numbering.
 	-> Int -- ^ Index of the node, in the subtree.
-	-> [NTree Cell] -- ^ List of subtrees for the given level.
-generate' (_, []) _ _ _ = []	-- If there is no more level, the generation is done for that branch.
-generate' (name, [r]:rows) lvls pid i = Node (name, id, pid, r) subtree : generate' (name, rows) ls pid (i+1)	-- For each list of level's list, we create the corresponding node.
+	-> ([Level], [NTree Cell]) -- ^ Tuple with what it remains to treat for each level, and a list of subtrees.
+generateSubTree (name, []) lvls _ _ = ((name,[]):lvls, []) -- If there is no more subtree for this level, it's finish for this level.
+generateSubTree (name, r:rows) lvls pid i -- We take the first list of the level => the first set of subtrees for the level (first = first of remaining ons)
+	| null r = ((name,rows):lvls, [])	-- If there is no subtrees to be build, we return what it left and no subtrees.
+	| otherwise = (ls, Node (name, id, pid, head r) subtree : nexttree) -- Otherwise, we construct the first subtree, and add him to the list of other
 	where
 		id = pid ++ show i	-- Node's numbering.
-		(ls, subtree)			-- ls -> what we haven't treated yet. subtree -> subtrees for the given node.
+		(lsub, subtree)	-- lsub -> what we haven't treated yet. subtree -> subtrees for the given node.
 			| null lvls = ([], [])
-			| otherwise = generate'' (head lvls) (tail lvls) id 1
-
-
-
--- | 'generate''', return a tuple with what we haven't treated for each level, and a list of subtrees.
-generate'' :: Level -- ^ Level treated.
-	-> [Level] -- ^ List of sublevels.
-	-> String -- ^ Father's numbering.
-	-> Int -- ^ Index of the node, in the subtree.
-	-> ([Level], [NTree Cell]) -- ^ Tuple with what we haven't treated for each level, and a list of subtrees.
-generate'' (name, []) lvls _ _ = ((name,[]):lvls, [])
-generate'' (name, r:rows) lvls pid i
-	| null r = ((name,rows):lvls, [])
-	| otherwise = (ls, Node (name, id, pid, head r) subtree : nexttree)
-	where
-		id = pid ++ show i	-- Node's numbering.
-		(lsub, subtree)			-- lsub -> what we haven't treated yet. subtree -> subtrees for the given node.
-			| null lvls = ([], [])
-			| otherwise = generate'' (head lvls) (tail lvls) id 1
-		(ls, nexttree) = generate'' (name, tail r :rows) lsub pid (i+1) -- ls -> what we haven't treated yet. nexttree -> next tree on the same level for the given node.
+			| otherwise = generateSubTree (head lvls) (tail lvls) id 1
+		(ls, nexttree) = generateSubTree (name, tail r : rows) lsub pid (i+1) -- ls -> what we haven't treated yet. nexttree -> next tree on the same level for the given node.

@@ -50,12 +50,12 @@ checkConstraint t2 cstr =
 				_ -> (False, ["Unknow pattern: " ++ pattern])
 		Cstr { items = iteems, command = cmd, wher = wheer } ->
 			case cmd of
-				"under" -> let (ok, ids) = checkUnderWithErrors iteems $ lookFor tree $ match wheer in (ok, identificatorsToString ids)
-				"!under" -> (not $ checkUnder iteems $ lookFor tree $ match wheer,[])
-				"under?" -> (checkUnder' iteems $ lookFor tree $ match wheer, [])
-				"!under?" -> (checkNotUnder' iteems $ lookFor tree $ match wheer, [])
+				"under" -> let (ok, ids) = checkUnder iteems $ lookFor tree $ match wheer in (ok, identificatorsToString ids)
+				"!under" -> let (ok, ids) = checkUnder iteems $ lookFor tree $ match wheer in (not ok, identificatorsToString $ iteems \\ ids)
+				"under?" -> (checkUnderOrNothing iteems $ lookFor tree $ match wheer, [])
+				"!under?" -> (not $ checkUnderOrNothing iteems $ lookFor tree $ match wheer, [])
 				"under1" -> (checkUnder1 iteems $ lookFor tree $ match wheer, [])
-				"before" -> (checkBefore iteems $ lookFor tree $ match wheer, [])
+				"before" -> checkBefore iteems $ lookFor tree $ match wheer
 				_ -> (False, ["Unknow command: " ++ cmd])
 	where
 		tree = t2Tree t2
@@ -72,13 +72,80 @@ match (Identificator l c) (Node (label,_,_,content) _) = c `elem` content && l =
 
 
 
--- | 'lookFor', return trees with a root node matched by the function.
-lookFor :: NTree Cell -- ^ The tree.
-	-> (NTree Cell -> Bool) -- ^ Function determining if we must keep a subtree.
-	-> [NTree Cell] -- ^ Subtrees matched by the function.
-lookFor node@(Node _ sbtrees) match'
-	| match' node  = node : foldl (\acc x -> acc ++ lookFor x match') [] sbtrees
-	| otherwise = foldl (\acc x -> acc ++ lookFor x match') [] sbtrees
+-- | 'checkUnder', return 'True' if all the items in the first list are in all subtrees selected.
+checkUnder :: Identificators -- ^ Identificators, matching items that must be in all subtrees.
+	-> [NTree Cell] -- ^ Subtrees.
+	-> (Bool, Identificators) -- ^ ('True', if all the items matched by the identificators are in all the subtrees, faulty identificators).
+checkUnder _ [] = (True, [])
+checkUnder itemss (t:trees)
+	| null faulty = checkUnder itemss trees
+ | otherwise = let (_, faulty2) = checkUnder itemss trees in (False, removeDuplicate (faulty ++ faulty2))
+	where
+		faulty = notContainedId itemss t
+
+
+
+-- | 'checkUnderOrNothing', return True if all the items in the first list are in a subtree selected, or none of the items are in.
+checkUnderOrNothing :: Identificators -- ^ Identificators, matching items.
+	-> [NTree Cell] -- ^ Subtrees.
+	-> Bool -- ^ 'True', if all the items matched by the identificators are in a subtree or none of them. 'False', otherwise.
+checkUnderOrNothing _ [] = True
+checkUnderOrNothing itemss (t:trees)
+	| badId == itemss || null badId = checkUnderOrNothing itemss trees
+	| otherwise = False
+	where
+		badId = notContainedId itemss t
+
+
+
+-- | 'checkUnder1', return 'True' if at least one items in the first list is in the subtree (for each subtrees).
+checkUnder1 :: Identificators -- ^ Identificators, matching items.
+	-> [NTree Cell] -- ^ Subtrees.
+	-> Bool -- ^ 'True' if at least one items in the first list is in the subtree (for each subtrees). 'False', otherwise.
+checkUnder1 _ [] = True
+checkUnder1 itemss (t:trees)
+	| containsId itemss itemss 1 t = checkUnder1 itemss trees
+	| otherwise = False
+
+
+
+-- | 'checkNotUnder'', return 'True' if only one item in the first list, is in a subtree selected, or none of the items are in.
+checkNotUnder' :: Identificators -- ^ Identificators, matching items.
+	-> [NTree Cell] -- ^ Subtrees.
+	-> Bool -- ^ 'True' if only one items in the first list is in the subtree (for each subtrees). 'False', otherwise.
+checkNotUnder' _ [] = True
+checkNotUnder' itemss (t:trees)
+	| badId == 1 || badId == 0 = checkNotUnder' itemss trees
+	| otherwise = False
+	where
+		badId = length $ notContainedId itemss t
+
+
+
+-- | 'checkBefore', check if the first item is before the second item (with left right traversal on root nodes of trees).
+checkBefore :: Identificators -- ^ Identificators.
+	-> [NTree Cell] -- ^ Subtrees.
+	-> (Bool, [String]) -- 'True', if the first item is before the second item. 'False', otherwise.
+checkBefore [] [] = (True, [])
+checkBefore ids [] = (False, ["Not found: " ++ show (identificatorsToString ids)])
+checkBefore (_:[]) _ = (True, [])
+checkBefore items@(a:b:xs) ts@(tree:trees)
+	| match a tree && not matchB = checkBefore (b:xs) ts
+	| matchB = (False, [identificatorToString b ++ " is before or on the same place than " ++ identificatorToString a])
+	| otherwise = checkBefore items trees
+	where
+		matchB = match b tree
+
+
+
+-- ////////////////////////////////// Util functions
+
+-- | 'removeDuplicate', remove duplicated elems of a list.
+removeDuplicate :: (Eq a) => [a] -> [a]
+removeDuplicate [] = []
+removeDuplicate (x:xs)
+	| x `elem` xs = removeDuplicate xs
+	| otherwise = x : removeDuplicate xs
 
 
 
@@ -102,54 +169,6 @@ notContainedId' _ [] = []
 notContainedId' tree (id:ids)
 	| match id tree = notContainedId' tree ids
 	| otherwise = id :  notContainedId' tree ids
-
-
-
--- | 'checkUnder', return 'True' if all the items in the first list are in all subtrees selected.
-checkUnder :: Identificators -- ^ Identificators, matching items that must be in all subtrees.
-	-> [NTree Cell] -- ^ Subtrees.
-	-> Bool -- ^ 'True', if all the items matched by the identificators are in all the subtrees.
-checkUnder _ [] = True
-checkUnder itemss (t:trees)
-	| null $ notContainedId itemss t = checkUnder itemss trees
-	| otherwise = False
-
-
-
--- | 'checkUnderWithErrors', return 'True' if all the items in the first list are in all subtrees selected.
-checkUnderWithErrors :: Identificators -- ^ Identificators, matching items that must be in all subtrees.
-	-> [NTree Cell] -- ^ Subtrees.
-	-> (Bool, Identificators) -- ^ ('True', if all the items matched by the identificators are in all the subtrees, faulty identificators).
-checkUnderWithErrors _ [] = (True, [])
-checkUnderWithErrors itemss (t:trees)
-	| null faulty = checkUnderWithErrors itemss trees
- | otherwise = let (_, faulty2) = checkUnderWithErrors itemss trees in (False, faulty `intersect` faulty2 ++ (faulty \\ faulty2) ++ (faulty2 \\ faulty))
-	where
-		faulty = notContainedId itemss t
-
-
-
--- | 'checkUnder'', return True if all the items in the first list are in a subtree selected, or none of the items are in.
-checkUnder' :: Identificators -- ^ Identificators, matching items.
-	-> [NTree Cell] -- ^ Subtrees.
-	-> Bool -- ^ 'True', if all the items matched by the identificators are in a subtree or none of them. 'False', otherwise.
-checkUnder' _ [] = True
-checkUnder' itemss (t:trees)
-	| badId == itemss || null badId = checkUnder' itemss trees
-	| otherwise = False
-	where
-		badId = notContainedId itemss t
-
-
-
--- | 'checkUnder1', return 'True' if at least one items in the first list is in the subtree (for each subtrees).
-checkUnder1 :: Identificators -- ^ Identificators, matching items.
-	-> [NTree Cell] -- ^ Subtrees.
-	-> Bool -- ^ 'True' if at least one items in the first list is in the subtree (for each subtrees). 'False', otherwise.
-checkUnder1 _ [] = True
-checkUnder1 itemss (t:trees)
-	| containsId itemss itemss 1 t = checkUnder1 itemss trees
-	| otherwise = False
 
 
 
@@ -177,29 +196,3 @@ containsId' _ _ [] = False
 containsId' ids x (t:tree)
 	| containsId ids ids x t = True
 	| otherwise = containsId' ids x tree
-
-
-
--- | 'checkNotUnder'', return 'True' if only one item in the first list is in a subtree selected, or none of the items are in.
-checkNotUnder' :: Identificators -- ^ Identificators, matching items.
-	-> [NTree Cell] -- ^ Subtrees.
-	-> Bool -- ^ 'True' if only one items in the first list is in the subtree (for each subtrees). 'False', otherwise.
-checkNotUnder' _ [] = True
-checkNotUnder' itemss (t:trees)
-	| badId == 1 || badId == 0 = checkNotUnder' itemss trees
-	| otherwise = False
-	where
-		badId = length $ notContainedId itemss t
-
-
-
--- | 'checkBefore', check if the first item is before the second item (with left right traversal on root nodes of trees).
-checkBefore :: Identificators -- ^ Identificators.
-	-> [NTree Cell] -- ^ Subtrees.
-	-> Bool -- 'True', if the first item is before the second item. 'False', otherwise.
-checkBefore _ [] = False
-checkBefore (_:[]) _ = True
-checkBefore items@(a:b:xs) ts@(tree:trees)
-	| match a tree = checkBefore (b:xs) ts
-	| match b tree = False
-	| otherwise = checkBefore items trees

@@ -47,7 +47,7 @@ generateLevels info = (lvls, patternObjects')
 
 -- | 'generateActivitiesLvl', generate activities level.
 generateActivitiesLvl :: Level -- ^ Activities level.
-generateActivitiesLvl = ("Activity", [[["Initial"]], [["Expert"]], [["Jigsaw"]]]) 
+generateActivitiesLvl = ("Activity", [[["Initial"], ["Expert"], ["Jigsaw"]]]) 
 
 
 

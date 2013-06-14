@@ -1,2 +1,2 @@
-CstrPattern "Jigsaw" "RessGroupe"
+CstrPattern "Jigsaw" "JigsawGroups"
 Cstr { items = [Identificator "Participant" "etu1", Identificator "Participant" "etu2"], command = "under?", wher = Label "Group"}

@@ -59,7 +59,7 @@ generateLevels info = (lvls, [activityObjects, resObj, map (\g -> (g,g)) groups,
 
 -- | 'generateActivityLvl', generate the activity level.
 generateActivityLvl :: Level -- ^ The activity level.
-generateActivityLvl = ("Activity", [[["Introduction"]],[["Learning"]]])
+generateActivityLvl = ("Activity", [[["Introduction"],["Learning"]]])
 
 
 

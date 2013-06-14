@@ -6,14 +6,16 @@ module Util.Tree
 	node,
 	subtrees,
 	nbLeaf,
-	normalize
+	normalize,
+	lookFor
 ) where
 
 
-data NTree a =
-	-- | Data structure representing a tree. 'Node a' for the node and '[NTree a]' for the subtrees
-	Node a [NTree a] |
-	EmptyTree deriving (Eq,Ord,Show,Read)
+data NTree a
+	-- | Data structure representing a tree.
+	= Node a [NTree a] -- ^ 'Node a' for the node and '[NTree a]' for the subtrees.
+	| EmptyTree -- ^ An empty tree.
+	deriving (Eq,Ord,Show,Read)
 
 
 
@@ -151,3 +153,13 @@ nodesExists' _ _ [] = False
 nodesExists' eq node (n:ns)
 	| eq node n = True
 	| otherwise = nodesExists' eq node ns
+
+
+
+-- | 'lookFor', return trees node matched by the function.
+lookFor :: NTree a -- ^ The tree.
+	-> (NTree a -> Bool) -- ^ Function determining if we must keep a subtree.
+	-> [NTree a] -- ^ Subtrees matched by the function.
+lookFor nodee@(Node _ sbtrees) match'
+	| match' nodee  = nodee : foldl (\acc x -> acc ++ lookFor x match') [] sbtrees
+	| otherwise = foldl (\acc x -> acc ++ lookFor x match') [] sbtrees

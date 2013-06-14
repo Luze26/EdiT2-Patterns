@@ -47,7 +47,7 @@ generateLevels info = (lvls, patternObject)
 
 -- | 'generateActivityLvl', generate the activity level.
 generateActivityLvl :: Level -- ^ The activity level.
-generateActivityLvl = ("Activity", [[["Introduction"]],[["Roles"]],[["Groups simulation"]],[["Simulation"]],[["Share"]]])
+generateActivityLvl = ("Activity", [[["Introduction"],["Roles"],["Groups simulation"],["Simulation"],["Share"]]])
 
 
 

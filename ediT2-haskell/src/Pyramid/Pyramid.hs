@@ -61,7 +61,7 @@ generateLevels info = (lvls, [activityObjects, groupObj, partObj, resObj, []])
 -- | 'generateActivityLvl', generate the activity level.
 generateActivityLvl :: Int -- ^ Number of pyramid's levels.
 	-> Level -- ^ The activity level.
-generateActivityLvl nbLvls = ("Activity", [ [["Level " ++ show i]] | i <- [1..nbLvls] ])
+generateActivityLvl nbLvls = ("Activity", [[ ["Level " ++ show i] | i <- [1..nbLvls] ]])
 
 
 
